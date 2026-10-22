@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JH VIDEO - Hyundai Tucson ix35</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Contenedor del simulador de marco de pantalla 10" (1024x600) -->
+  <div class="screen-frame-wrapper" id="frameWrapper">
+    
+    <!-- Barra superior de estado del auto -->
+    <header class="car-status-bar">
+      <div class="status-left">
+        <span class="brand-badge"><span class="dot"></span> HYUNDAI TUCSON IX</span>
+        <span class="version-badge" id="appVersionBadge">JH VIDEO v1.0.0</span>
+        <span class="source-badge" id="sourceBadge">
+          <span id="currentPathLabel">Q hubo jefe 😉</span>
+        </span>
+      </div>
+
+      <div class="status-center">
+        <span class="clock-display" id="clockDisplay">01:30</span>
+      </div>
+
+      <div class="status-right">
+        <!-- Botón Re-escanear USB para cuando se inserte un nuevo pendrive -->
+        <button class="btn-rescan-usb" id="btnRescanUsb" title="Re-escanear memorias USB">
+          <svg class="icon-rescan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span id="rescanLabel">Re-escanear USB</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL ERGONÓMICO DE 3 COLUMNAS -->
+    <main class="dashboard-grid">
+
+      <!-- COLUMNA 1: TIRA LATERAL DEL CONDUCTOR ULTRA-SLIM (54px) -->
+      <aside class="driver-volume-strip">
+        <!-- 0. Botón HOME Táctil de Pantalla (Misma función que el botón físico HOME del auto) -->
+        <button class="btn-driver-back" id="btnNavHome" title="Inicio / Home (Botón físico en pantalla)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </button>
+
+        <!-- 1. Botón MUTE Primero (Acceso instantáneo para el conductor) -->
+        <button class="btn-driver-mute" id="btnMute" title="Silenciar / Activar Sonido">
+          <svg class="mute-off" id="iconUnmuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <svg class="mute-on hidden" id="iconMuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+
+        <!-- 2. Botón Subir (+) -->
+        <button class="btn-driver-vol btn-vol-plus" id="btnVolUp" title="Subir Volumen (+)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- 3. Indicador Porcentaje (En medio de + y -) -->
+        <div class="strip-header">
+          <span class="strip-percent" id="volPercent">75%</span>
+        </div>
+
+        <!-- 4. Botón Bajar (-) -->
+        <button class="btn-driver-vol btn-vol-minus" id="btnVolDown" title="Bajar Volumen (-)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- 5. Barra de Nivel Vertical Táctil (Abajo de + y -, con separación ergonómica) -->
+        <div class="driver-vol-meter-wrap" id="volMeterWrap" title="Desliza para ajustar el volumen">
+          <div class="vol-meter-track">
+            <div class="vol-meter-fill" id="volMeterFill" style="height: 75%;"></div>
+            <div class="vol-meter-thumb" id="volMeterThumb" style="bottom: 75%;"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- COLUMNA 2: EXPLORADOR DE PENDRIVE Y LISTA DE PISTAS (Ahora a la izquierda) -->
+      <section class="explorer-panel left-panel" id="explorerPanel">
+        
+        <!-- Pestañas de Navegación del Pendrive y Acciones de Árbol -->
+        <div class="browser-header">
+          <div class="browser-top-row">
+            <div class="browser-tabs">
+              <button class="tab-btn active" data-tab="folders">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span>Carpetas USB</span>
+              </button>
+              <button class="tab-btn" data-tab="playlist">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Videos (<span id="songCount">0</span>)</span>
+              </button>
+              <!-- Mi Lista: lista de videos que armas con + y se reproduce entera, en orden -->
+              <button class="tab-btn" data-tab="mymix">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="14" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><line x1="18" y1="13" x2="18" y2="21"/><line x1="14" y1="17" x2="22" y2="17"/></svg>
+                <span>Mi Lista (<span id="mixCount">0</span>)</span>
+                <!-- Punto cian que late mientras se reproduce Mi Lista (quieto en pausa) -->
+                <span class="tab-live-dot hidden" id="mixLiveDot"></span>
+              </button>
+            </div>
+
+            <!-- Acción de Árbol: Solo Icono de Colapsar Todo -->
+            <div class="tree-actions" id="treeActions">
+              <button class="btn-tree-action" id="btnCollapseAllTree" title="Colapsar todo a nivel pendrives">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 14h6m0 0v6m0-6L3 21M20 10h-6m0 0V4m0 6l7-7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel de Filtros Rápidos (Oculto en pestaña Carpetas para dar máximo espacio vertical) -->
+          <div class="search-filters-bar hidden" id="searchFiltersBar">
+            <span class="filters-label">Filtros:</span>
+            <button class="filter-chip active chip-folder-marquee" id="chipFilterFolder" data-filter="folder">
+              <span class="chip-folder-icon">📁</span>
+              <span class="chip-folder-usb-badge hidden" id="chipFolderUsbBadge"></span>
+              <span class="chip-folder-text-wrap">
+                <span class="chip-folder-text" id="chipFolderText">Esta Carpeta</span>
+              </span>
+            </button>
+            <button class="filter-chip" id="chipFilterAll" data-filter="all">🌐 TODO</button>
+            <button class="filter-chip chip-usb" id="chipFilterUsb1" data-filter="usb1" title="Filtrar por USB 1">
+              <svg class="usb-icon" viewBox="0 0 24 24"><path d="M15 7v4h1v2h-3V5h2l-3-4-3 4h2v8H8v-2.07c.7-.37 1.2-1.08 1.2-1.93 0-1.2-.99-2.18-2.2-2.18-1.21 0-2.2.98-2.2 2.18 0 .85.5 1.56 1.2 1.93V13c0 1.11.89 2 2 2h3v3.05c-.71.37-1.2 1.1-1.2 1.95a2.2 2.2 0 0 0 4.4 0c0-.85-.49-1.58-1.2-1.95V15h3c1.11 0 2-.89 2-2v-2h1V7h-4z"/></svg>
+              <span>1</span>
+            </button>
+            <button class="filter-chip chip-usb" id="chipFilterUsb2" data-filter="usb2" title="Filtrar por USB 2">
+              <svg class="usb-icon" viewBox="0 0 24 24"><path d="M15 7v4h1v2h-3V5h2l-3-4-3 4h2v8H8v-2.07c.7-.37 1.2-1.08 1.2-1.93 0-1.2-.99-2.18-2.2-2.18-1.21 0-2.2.98-2.2 2.18 0 .85.5 1.56 1.2 1.93V13c0 1.11.89 2 2 2h3v3.05c-.71.37-1.2 1.1-1.2 1.95a2.2 2.2 0 0 0 4.4 0c0-.85-.49-1.58-1.2-1.95V15h3c1.11 0 2-.89 2-2v-2h1V7h-4z"/></svg>
+              <span>2</span>
+            </button>
+          </div>
+
+          <!-- Barra de Búsqueda Rápida -->
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Buscar entre carpetas...">
+            <div class="search-spinner hidden" id="searchSpinner" title="Buscando...">
+              <svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10" stroke="rgba(56, 189, 248, 0.25)"></circle>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-linecap="round"></path>
+              </svg>
+            </div>
+            <button id="clearSearch" class="btn-clear hidden">&times;</button>
+          </div>
+        </div>
+
+
+        <!-- Migas de pan ocultadas para maximizar espacio vertical -->
+        <div class="folder-breadcrumbs" id="breadcrumbs" style="display: none !important;">
+          <span class="crumb root" id="crumbRoot"></span>
+          <span class="crumb active" id="crumbFolder"></span>
+        </div>
+        <!-- Contenedor con FastScroller y Burbuja Flotante A-Z para 200+ pistas -->
+        <div class="track-list-wrapper">
+          <div class="scroll-track-list" id="trackListContainer">
+            <!-- Se llena dinámicamente -->
+          </div>
+
+          <!-- Overlay de Búsqueda Activa (Efecto cargando ergonómico para conductor) -->
+          <div class="search-overlay-loading hidden" id="searchOverlayLoading">
+            <div class="search-overlay-spinner"></div>
+            <span class="search-overlay-text">Buscando videos...</span>
+          </div>
+
+          <!-- FastScroller Lateral Ergonómico -->
+          <div class="web-fast-scroller" id="webFastScroller" style="display: none;">
+            <div class="web-fast-thumb" id="webFastThumb"></div>
+          </div>
+
+          <!-- Burbuja Flotante Central A-Z -->
+          <div class="web-fast-bubble" id="webFastBubble">
+            <span class="bubble-letter" id="webBubbleLetter">A</span>
+            <span class="bubble-count" id="webBubbleCount">1 / 200</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMNA 3: REPRODUCTOR, CARÁTULA Y CONTROLES DE PISTA (Ahora a la derecha) -->
+      <section class="player-panel" id="playerPanel">
+        
+        <!-- Barra superior del reproductor con botón de alternar explorador -->
+        <div class="player-top-bar">
+          <div class="player-top-actions">
+            <!-- Botón Buscador / Explorador (Abre/oculta el explorador que está a su izquierda) -->
+            <button class="btn-toggle-expand" id="btnToggleExpand" title="Ocultar / Mostrar explorador de archivos">
+              <svg class="icon-music-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="15" y2="6"/>
+                <line x1="3" y1="12" x2="11" y2="12"/>
+                <line x1="3" y1="18" x2="9" y2="18"/>
+                <circle cx="16.5" cy="15.5" r="4.5"/>
+                <line x1="19.8" y1="18.8" x2="22.5" y2="21.5"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Estado oculto (igual que la app): ya lo muestran la cápsula PLAYING / MIXING y el botón Automix -->
+          <div class="driver-mode-badge hidden" id="driverModeBadge">
+            <span class="live-dot" id="liveDot"></span>
+            <span id="playbackStatusText">EN PAUSA</span>
+          </div>
+
+          <!-- Centro: estado (cápsula) y formato del video. Van aquí arriba para no tapar el video -->
+          <div class="player-top-center">
+            <div class="now-playing-pill" id="nowPlayingPill">
+              <span class="pill-label" id="pillStatusText">PAUSED</span>
+              <div class="pill-eq-bars">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="audio-badge" id="formatBadge">MP4 720P</div>
+          </div>
+
+        </div>
+
+        <div class="now-playing-card">
+          <!-- Cuadro del video 16:9 (en el lugar de la carátula). Toca el video para verlo en pantalla completa -->
+          <div class="album-art-wrap video-wrap">
+          <div class="album-art-container video-frame" id="albumContainer">
+            <!-- Borde Láser Giratorio (Cian) mientras se reproduce -->
+            <div class="laser-spinner" id="laserSpinner"></div>
+            <div class="laser-spinner-mix" id="laserSpinnerMix"></div>
+
+            <div class="album-art-inner">
+              <div class="album-glow" id="albumGlow"></div>
+              <!-- Video real (archivos de la PC) y video de muestra dibujado en el canvas -->
+              <video id="audioPlayer" class="video-el" playsinline preload="metadata"></video>
+              <canvas id="simCanvas" class="video-el sim-canvas" width="640" height="360"></canvas>
+              <img id="albumArt" src="" alt="" class="album-art-img hidden">
+
+              <div class="album-placeholder" id="albumPlaceholder">
+                <svg class="vinyl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/></svg>
+              </div>
+
+              <!-- Pantalla completa: barra de arriba (título y salir) y de abajo (tiempo y controles) -->
+              <div class="fs-overlay" id="fsOverlay">
+                <div class="fs-top">
+                  <span class="fs-title" id="fsTitle"></span>
+                  <button class="fs-btn fs-exit" id="fsExit" title="Salir de pantalla completa">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+                  </button>
+                </div>
+                <div class="fs-bottom">
+                  <div class="fs-progress" id="fsProgressBar"><div class="fs-track"><div class="fs-progress-fill" id="fsProgress"></div><div class="fs-thumb" id="fsThumb"></div></div></div>
+                  <div class="fs-row">
+                    <span class="fs-time" id="fsTime">00:00 / 00:00</span>
+                    <div class="fs-ctrls">
+                      <button class="fs-btn" id="fsPrev" title="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.3"/><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.6 13.2a1.5 1.5 0 0 1 0-2.4l7.85-5.43A1 1 0 0 1 19 6.2z"/></svg></button>
+                      <button class="fs-btn fs-play" id="fsPlay" title="Reproducir / Pausar"><svg class="fs-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/></svg><svg class="fs-pause-icon hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></button>
+                      <button class="fs-btn" id="fsNext" title="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.3"/><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l7.85-5.43a1.5 1.5 0 0 0 0-2.4L6.55 5.37A1 1 0 0 0 5 6.2z"/></svg></button>
+                    </div>
+                    <span class="fs-hint">Un toque: controles · Doble toque: salir</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <!-- Metadatos del video -->
+          <div class="track-meta">
+            <div class="marquee-wrapper">
+              <h1 class="track-title" id="trackTitle">Selecciona un video</h1>
+            </div>
+            <div class="track-details">
+              <span class="track-artist" id="trackArtist">Tucson ix35 Video</span>
+              <span class="meta-separator">•</span>
+              <span class="track-album" id="trackAlbum">Memoria USB</span>
+            </div>
+          </div>
+
+          <!-- Previsualización de Canción Anterior y Posterior (Siguiente) -->
+          <div class="adjacent-tracks-preview" id="adjacentTracksPreview">
+            <!-- Pista Anterior -->
+            <!-- Ícono grande al inicio y nombre grande para leer manejando -->
+            <div class="adj-card adj-prev" id="adjPrevCard" title="Toca para ir a la anterior">
+              <span class="adj-icon">⏮</span>
+              <div class="adj-title-wrap">
+                <span class="adj-title" id="prevTrackTitle">Cargando...</span>
+              </div>
+            </div>
+
+            <!-- Divisor sutil -->
+            <div class="adj-divider"></div>
+
+            <!-- Pista Siguiente -->
+            <!-- Nombre grande y ícono grande al final -->
+            <div class="adj-card adj-next" id="adjNextCard" title="Toca para ir a la siguiente">
+              <div class="adj-title-wrap">
+                <span class="adj-title" id="nextTrackTitle">Cargando...</span>
+              </div>
+              <span class="adj-icon">⏭</span>
+            </div>
+          </div>
+
+          <!-- Barra de Progreso y Tiempo -->
+          <div class="progress-section">
+            <div class="progress-bar-container" id="progressBarContainer">
+              <div class="progress-buffered"></div>
+              <div class="progress-current" id="progressCurrent"></div>
+              <div class="progress-scrubber" id="progressScrubber"></div>
+            </div>
+            <div class="time-row">
+              <span id="currentTime">00:00</span>
+              <span id="totalDuration">00:00</span>
+            </div>
+          </div>
+
+          <!-- Controles de Reproducción táctiles (Grandes para auto) -->
+          <div class="playback-controls">
+            <button class="btn-ctrl btn-secondary" id="btnShuffle" title="Aleatorio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2.6c1.8 0 3-.9 4-2.4l3.8-5.2C14.4 7.9 15.6 7 17.4 7H21"/><polyline points="18 4 21 7 18 10"/><path d="M3 7h2.6c1.8 0 3 .9 4 2.4l.5.7"/><path d="M13.9 13.9l.5.7c1 1.5 2.2 2.4 4 2.4H21"/><polyline points="18 14 21 17 18 20"/></svg>
+            </button>
+
+            <button class="btn-ctrl btn-nav" id="btnPrev" title="Anterior">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.3"/><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.6 13.2a1.5 1.5 0 0 1 0-2.4l7.85-5.43A1 1 0 0 1 19 6.2z"/></svg>
+            </button>
+
+            <button class="btn-ctrl btn-play-main" id="btnPlayPause" title="Reproducir / Pausar">
+              <svg class="play-icon" id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/></svg>
+              <svg class="pause-icon hidden" id="pauseIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+            </button>
+
+            <button class="btn-ctrl btn-nav" id="btnNext" title="Siguiente">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.3"/><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l7.85-5.43a1.5 1.5 0 0 0 0-2.4L6.55 5.37A1 1 0 0 0 5 6.2z"/></svg>
+            </button>
+
+            <button class="btn-ctrl btn-secondary" id="btnRepeat" title="Repetir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 20 5 17 8"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><polyline points="7 22 4 19 7 16"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- En la maqueta, Re-escanear USB abre una carpeta de la PC con videos para probar -->
+  <input type="file" id="fileInput" webkitdirectory multiple hidden>
+
+  <!-- Script principal -->
+  <script src="app.js"></script>
+</body>
+</html>

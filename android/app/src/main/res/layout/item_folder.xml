@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:descendantFocusability="blocksDescendants"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Icono de Carpeta -->
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_btn_action"
+        android:src="@drawable/ic_folder_cyan"
+        android:scaleType="fitCenter"
+        android:padding="10dp" />
+
+    <!-- Datos de la Carpeta -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/tvFolderName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Nombre Carpeta"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Subtítulo con Etiqueta alineada a la izquierda + Ruta limpia -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="3dp">
+
+            <TextView
+                android:id="@+id/tvFolderUsbBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_usb1"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="USB 1"
+                android:textColor="@color/accent_cyan"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFolderPath"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:singleLine="true"
+                android:ellipsize="start"
+                android:text="/JH PENDRIVE"
+                android:textColor="@color/text_muted"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- + : agregar la carpeta entera a Mi Mix -->
+    <ImageButton
+        android:id="@+id/btnFolderAddMix"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_folder_addmix"
+        android:src="@drawable/ic_mix_add"
+        android:scaleType="center"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:contentDescription="Agregar carpeta a Mi Lista" />
+
+    <!-- Conteo de Canciones: Solo número limpio -->
+    <TextView
+        android:id="@+id/tvFolderTrackCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- Flecha navegar -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:text="›"
+        android:textColor="@color/text_muted"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

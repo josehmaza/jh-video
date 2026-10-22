@@ -1,0 +1,3391 @@
+/* ========================================================
+   JH CAR AUDIO - HYUNDAI TUCSON IX35
+   Tema: Gris Carbón Minimalista (Sleek Dark Carbon & Titanium)
+   Arquitectura ergonómica: Borde del Conductor (Driver Strip)
+   Resolución: 1024x600 (Pantalla de 10 pulgadas)
+   ======================================================== */
+
+:root {
+  /* Paleta Carbón Minimalista */
+  --bg-deep: #0a0c10;
+  --bg-surface: #12151b;
+  --bg-card: #181c24;
+  --bg-card-hover: #222733;
+  --bg-subtle: #272d3b;
+  
+  /* Titanio y Acentos */
+  --accent-titanium: #e2e8f0;
+  --accent-blue: #38bdf8;
+  --accent-blue-glow: rgba(56, 189, 248, 0.3);
+  --accent-red-alert: #f43f5e;
+  
+  /* Textos */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Bordes y Divisiones */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.14);
+  --border-active: rgba(56, 189, 248, 0.5);
+
+  /* Sombras y Luces */
+  --shadow-car: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-btn: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  /* Tipografía */
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: #040507;
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ================= CONTENEDOR MARCO DE AUTO (1024x600) ================= */
+.screen-frame-wrapper {
+  width: 1024px;
+  height: 600px;
+  background-color: var(--bg-deep);
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px #262933, var(--shadow-car);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.screen-frame-wrapper.is-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ================= BARRA DE ESTADO SUPERIOR ================= */
+.car-status-bar {
+  height: 42px;
+  background: linear-gradient(180deg, #181c24 0%, #11141a 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.status-left, .status-right, .status-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--accent-titanium);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.brand-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+}
+
+.version-badge {
+  font-size: 0.70rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(30, 41, 59, 0.7);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+}
+
+.source-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+}
+
+.clock-display {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+.btn-rescan-usb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--accent-blue);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.btn-rescan-usb:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px var(--accent-blue-glow);
+}
+
+.btn-rescan-usb:active {
+  transform: scale(0.95);
+}
+
+.icon-rescan {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-rescan-usb.is-spinning .icon-rescan {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.btn-top-util {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-top-util:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.icon-small {
+  width: 16px;
+  height: 16px;
+}
+
+/* ================= GRID DE 3 COLUMNAS DEL DASHBOARD ================= */
+.dashboard-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 54px 1.18fr 1fr; /* Col 1: Vol (54px), Col 2: Explorador (ahora a la izquierda), Col 3: Reproductor (derecha) */
+  overflow: hidden;
+  position: relative;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* Modo Reproductor Expandido / Pantalla Completa (Explorador colapsado a la izquierda) */
+.dashboard-grid.is-expanded {
+  grid-template-columns: 54px 1fr;
+}
+
+.dashboard-grid.is-expanded .explorer-panel,
+.dashboard-grid.is-expanded .left-panel,
+.dashboard-grid.is-expanded .right-panel {
+  display: none !important;
+}
+
+.dashboard-grid.is-expanded .player-panel {
+  border-left: none;
+  border-right: none;
+  padding: 4px 24px 6px 24px;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  height: 100%;
+}
+
+.dashboard-grid.is-expanded .now-playing-card {
+  max-width: 560px;
+  gap: 4px;
+  flex: 1;
+  justify-content: space-evenly;
+}
+
+.dashboard-grid.is-expanded .album-art-container {
+  width: 221px; /* 240 - 19: la cápsula sobresale 19px y el título no se mueve */
+  height: 221px;
+  border-radius: 20px;
+}
+
+.dashboard-grid.is-expanded .track-meta {
+  margin-top: 0;
+}
+
+.dashboard-grid.is-expanded .track-title {
+  font-size: 1.35rem;
+}
+
+.dashboard-grid.is-expanded .track-details {
+  font-size: 0.86rem;
+}
+
+.dashboard-grid.is-expanded .adjacent-tracks-preview {
+  max-width: 540px;
+  padding: 4px 12px;
+  margin: 0 auto;
+}
+
+.dashboard-grid.is-expanded .progress-section {
+  max-width: 540px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.dashboard-grid.is-expanded .playback-controls {
+  max-width: 420px;
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  gap: 12px;
+}
+
+.dashboard-grid.is-expanded .btn-play-main {
+  width: 62px;
+  height: 62px;
+}
+
+.dashboard-grid.is-expanded .btn-nav {
+  width: 48px;
+  height: 48px;
+}
+
+.dashboard-grid.is-expanded .btn-ctrl.btn-secondary {
+  width: 42px;
+  height: 42px;
+}
+
+/* ================= COLUMNA 1: TIRA LATERAL ULTRA-SLIM (54px) ================= */
+.driver-volume-strip {
+  background: linear-gradient(180deg, #151921 0%, #0d0f14 100%);
+  border-right: 1px solid #232834;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  gap: 12px;
+  justify-content: flex-start;
+  box-shadow: inset -2px 0 6px rgba(0,0,0,0.4);
+  z-index: 5;
+}
+
+.strip-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.strip-percent {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  text-shadow: 0 0 10px var(--accent-blue-glow);
+  letter-spacing: -0.5px;
+}
+
+/* Botón Atrás Táctil Conductor (Misma función que el botón físico para visión nocturna) */
+.btn-driver-back {
+  width: 42px;
+  height: 40px;
+  background: #181d26;
+  border: 1.5px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  margin-bottom: 2px;
+}
+
+.btn-driver-back:hover {
+  background: #232a38;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+.btn-driver-back:active {
+  transform: scale(0.92);
+  background: var(--accent-blue);
+  color: #0a0c10;
+}
+
+.btn-driver-back svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botones Compactos de Volumen (Solo iconos limpios) */
+.btn-driver-vol {
+  width: 42px;
+  height: 40px;
+  background: #1c212b;
+  border: 1.5px solid #2d3444;
+  border-radius: 10px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-driver-vol:hover {
+  border-color: var(--accent-blue);
+  background: #252c3a;
+}
+
+.btn-driver-vol:active {
+  transform: scale(0.92);
+  background: var(--accent-blue);
+  color: #0a0c10;
+}
+
+.btn-driver-vol svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Barra Vertical Táctil de Nivel (Ocupa hasta abajo del término de la pantalla) */
+.driver-vol-meter-wrap {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px 0 6px 0;
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.vol-meter-track {
+  width: 12px;
+  height: 100%;
+  background: #11141a;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: flex-end;
+}
+
+.vol-meter-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #60a5fa 0%, #38bdf8 100%);
+  border-radius: 6px;
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+  transition: height 0.08s ease;
+}
+
+.vol-meter-thumb {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 24px;
+  height: 24px;
+  background: var(--accent-titanium);
+  border: 2.5px solid #0d0f14;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 10px var(--accent-blue-glow);
+  pointer-events: none;
+  transition: bottom 0.08s ease;
+}
+
+/* Botón Mute Compacto */
+.btn-driver-mute {
+  width: 42px;
+  height: 40px;
+  background: #181b22;
+  border: 1.5px solid #2d3444;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-driver-mute svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-driver-mute:hover {
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.btn-driver-mute.is-muted {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: var(--accent-red-alert);
+  color: var(--accent-red-alert);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+}
+
+.btn-driver-mute.is-muted {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: var(--accent-red-alert);
+  color: var(--accent-red-alert);
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.3);
+}
+
+/* ================= COLUMNA 3: REPRODUCTOR Y CARÁTULA (Ahora a la derecha) ================= */
+.player-panel {
+  background: linear-gradient(135deg, #13161c 0%, #0d0f14 100%);
+  border-left: 1px solid var(--border-subtle);
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px 10px 20px;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Barra superior del reproductor: lupa y Automix flotan en las esquinas superiores,
+   a los costados de la carátula (igual que la app), para que la carátula suba y sea más grande */
+.player-top-bar {
+  position: absolute;
+  top: 12px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.player-top-bar > * {
+  pointer-events: auto;
+}
+
+.driver-mode-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.8px;
+  font-family: var(--font-mono);
+  transition: color 0.2s ease;
+}
+
+.driver-mode-badge.is-playing {
+  color: var(--accent-blue);
+}
+
+.driver-mode-badge.is-paused {
+  color: #f59e0b;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--accent-blue);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-blue);
+  animation: pulse-glow 2s infinite;
+}
+
+.driver-mode-badge.is-paused .live-dot {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  animation: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.btn-toggle-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 42px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--accent-blue);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.btn-toggle-expand:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 12px var(--accent-blue-glow);
+}
+
+.btn-toggle-expand:active {
+  transform: scale(0.92);
+}
+
+.btn-toggle-expand.is-active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+.btn-toggle-expand svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Lupa + Automix juntos a la izquierda de la barra del reproductor */
+.player-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Automix apagado: gris; encendido: cian como el resto de botones activos */
+.btn-toggle-expand.btn-automix {
+  color: var(--text-muted);
+}
+
+.btn-toggle-expand.btn-automix.is-active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+/* Fundido de carátula */
+.np-fade {
+  transition: opacity 0.6s ease;
+}
+
+.np-hidden {
+  opacity: 0 !important;
+}
+
+/* Copia de la carátula anterior que se desvanece encima de la nueva durante la mezcla */
+.album-art-img.art-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* encima de la carátula nueva, debajo de las barras animadas */
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+
+.now-playing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Carátula: 221px (240 - 19). La cápsula PLAYING sobresale 19px por debajo; la carátula se achica
+   eso mismo para que el título y lo de abajo no se muevan (igual que en la app nativa) */
+.album-art-container {
+  width: 221px;
+  height: 221px;
+  border-radius: 20px;
+  background: #11141a;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--border-subtle);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  padding: 2.5px;
+  transition: transform 0.15s ease, box-shadow 0.25s ease;
+}
+
+.album-art-container:active {
+  transform: scale(0.97);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 0 16px rgba(56, 189, 248, 0.35);
+}
+
+/* Spinner de haz láser que gira alrededor en el borde (Opción 4) */
+.laser-spinner {
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(from 0deg, transparent 0deg 280deg, rgba(0, 210, 255, 0.3) 320deg, #00d2ff 350deg, #ffffff 360deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.album-art-container.is-playing .laser-spinner {
+  opacity: 1;
+  animation: rotateLaser 2.2s linear infinite;
+}
+
+@keyframes rotateLaser {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Segundo haz láser Deck B (Magenta Neón) que entra en mezcla Automix */
+.laser-spinner-mix {
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(from 180deg, transparent 0deg 280deg, rgba(244, 63, 94, 0.3) 320deg, #f43f5e 350deg, #ffffff 360deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.album-art-container.is-mixing .laser-spinner-mix {
+  opacity: 1;
+  animation: rotateLaserReverse 1.5s linear infinite;
+}
+
+@keyframes rotateLaserReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Contenedor interior que oculta el centro del láser y sostiene la carátula */
+.album-art-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 17px;
+  background: #11141a;
+  overflow: hidden;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 17px;
+}
+
+.album-glow {
+  position: absolute;
+  inset: -15px;
+  background: radial-gradient(circle, var(--accent-blue-glow) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.album-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 1;
+}
+
+.vinyl-icon {
+  width: 76px;
+  height: 76px;
+  color: var(--text-muted);
+}
+
+/* Con carátula: la imagen ocupa el cuadro */
+.album-art-container.has-cover .album-art-img {
+  position: absolute;
+  inset: 0;
+}
+
+.album-art-container.has-cover .vinyl-icon {
+  display: none;
+}
+
+/* Cápsula Glassmorphism Neón (Opción 2) */
+/* Envuelve carátula + cápsula: la cápsula queda montada sobre el borde de abajo (mitad fuera)
+   y el margen de abajo reserva esa mitad para que no choque con el título */
+.album-art-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 19px;
+}
+
+.now-playing-pill {
+  position: absolute;
+  left: 50%;
+  bottom: -19px;
+  transform: translateX(-50%);
+  background: rgba(10, 14, 22, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  padding: 7px 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+  transition: all 0.3s ease;
+}
+
+.album-art-container.is-playing ~ .now-playing-pill {
+  border-color: rgba(0, 210, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 210, 255, 0.3);
+}
+
+.pill-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-right: 4px;
+  font-family: var(--font-mono);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.album-art-container.is-playing ~ .now-playing-pill .pill-label {
+  color: var(--accent-blue);
+  text-shadow: 0 0 4px rgba(0, 210, 255, 0.4);
+}
+
+.pill-eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 22px;
+}
+
+.pill-eq-bars span {
+  width: 5.5px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 1.5px;
+  height: 4px;
+  transition: height 0.2s, background 0.3s;
+}
+
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span {
+  background: linear-gradient(to top, var(--accent-blue), #67e8f9);
+}
+
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span:nth-child(1) { animation: pillWave 0.7s infinite alternate ease-in-out; }
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span:nth-child(2) { animation: pillWave 0.5s 0.15s infinite alternate ease-in-out; }
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span:nth-child(3) { animation: pillWave 0.8s 0.3s infinite alternate ease-in-out; }
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span:nth-child(4) { animation: pillWave 0.6s 0.2s infinite alternate ease-in-out; }
+.album-art-container.is-playing ~ .now-playing-pill .pill-eq-bars span:nth-child(5) { animation: pillWave 0.75s 0.05s infinite alternate ease-in-out; }
+
+@keyframes pillWave {
+  0%   { height: 4px; }
+  100% { height: 22px; }
+}
+
+/* Cápsula en mezcla Automix: conmuta a Magenta Neón */
+.album-art-container.is-mixing ~ .now-playing-pill {
+  border-color: rgba(244, 63, 94, 0.65);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7), 0 0 16px rgba(244, 63, 94, 0.45);
+}
+
+.album-art-container.is-mixing ~ .now-playing-pill .pill-label {
+  color: #f43f5e;
+  text-shadow: 0 0 4px rgba(244, 63, 94, 0.6);
+}
+
+.album-art-container.is-mixing ~ .now-playing-pill .pill-eq-bars span {
+  background: linear-gradient(to top, #f43f5e, #fb7185);
+}
+
+/* Sound-wave bars para items de la lista (mantiene compatibilidad) */
+.sound-wave-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 20px;
+}
+
+.sound-wave-bars span {
+  width: 3.5px;
+  background-color: var(--accent-blue);
+  border-radius: 3px;
+  height: 4px;
+  transition: height 0.2s ease;
+}
+
+.is-playing .sound-wave-bars span:nth-child(1) { animation: wave 0.8s infinite ease-in-out; }
+.is-playing .sound-wave-bars span:nth-child(2) { animation: wave 0.6s 0.2s infinite ease-in-out; }
+.is-playing .sound-wave-bars span:nth-child(3) { animation: wave 0.9s 0.4s infinite ease-in-out; }
+.is-playing .sound-wave-bars span:nth-child(4) { animation: wave 0.7s 0.1s infinite ease-in-out; }
+.is-playing .sound-wave-bars span:nth-child(5) { animation: wave 0.85s 0.3s infinite ease-in-out; }
+
+@keyframes wave {
+  0%, 100% { height: 4px; }
+  50% { height: 20px; }
+}
+
+/* Pegado a la esquina de arriba a la derecha, siguiendo su curva: tapa lo mínimo de la carátula */
+.audio-badge {
+  position: absolute;
+  top: -1px; /* 1px de más: tapa el borde suavizado de la carátula en la curva */
+  right: -1px;
+  /* Fondo sólido y curva propia igual a la de la carátula (17px): el desenfoque no se recortaba
+     bien en la esquina redondeada y dejaba ver la carátula por el borde */
+  background: rgb(12, 14, 18);
+  color: var(--accent-titanium);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 10px 4px 8px;
+  border-left: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  border-radius: 0 18px 0 10px;
+  font-family: var(--font-mono);
+  z-index: 2; /* siempre visible, también encima de la carátula */
+}
+
+/* Metadatos */
+.track-meta {
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+}
+
+.marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  text-align: center;
+}
+
+.marquee-wrapper.has-overflow {
+  text-align: left;
+}
+
+.track-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.track-details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.meta-separator {
+  color: var(--border-light);
+  font-size: 1.1rem;
+}
+
+.track-artist {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  letter-spacing: -0.2px;
+}
+
+.track-album {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+/* ================= PREVISUALIZACIÓN DE CANCIÓN ANTERIOR Y SIGUIENTE ================= */
+.adjacent-tracks-preview {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: rgba(18, 22, 29, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 5px 10px;
+  backdrop-filter: blur(8px);
+}
+
+/* Ícono grande en el extremo + nombre grande en una línea, para leer manejando */
+.adj-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  user-select: none;
+  min-width: 0;
+}
+
+.adj-card:hover {
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.adj-card:active {
+  transform: scale(0.96);
+}
+
+.adj-prev,
+.adj-next {
+  text-align: center;
+}
+
+.adj-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.adj-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--accent-blue);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.adj-title-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Anterior alineado hacia su ícono (izquierda); Siguiente hacia el suyo (derecha) */
+.adj-prev .adj-title-wrap {
+  text-align: left;
+}
+
+.adj-next .adj-title-wrap {
+  text-align: right;
+}
+
+.adj-prev .adj-title-wrap.has-overflow,
+.adj-next .adj-title-wrap.has-overflow {
+  text-align: left;
+}
+
+.adj-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #cbd5e1; /* gris casi blanco: menos destacado que el título actual */
+  white-space: nowrap;
+  display: inline-block;
+  transition: color 0.15s;
+}
+
+.adj-card:hover .adj-title {
+  color: var(--text-primary);
+}
+
+.adj-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-light);
+  opacity: 0.5;
+}
+
+/* ================= EFECTO MARQUESINA SUAVE TIPO AUTO (AUTO-SCROLL) ================= */
+@keyframes carMarquee {
+  0%, 20% {
+    transform: translateX(0);
+  }
+  65%, 82% {
+    transform: translateX(var(--scroll-dist, -40px));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.is-scrolling {
+  display: inline-block !important;
+  animation: carMarquee var(--scroll-dur, 7s) cubic-bezier(0.42, 0, 0.58, 1) infinite !important;
+  will-change: transform;
+}
+
+/* Barra de Progreso */
+.progress-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 12px;
+  background: #20242e;
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.progress-buffered {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.progress-current {
+  position: absolute;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%);
+  border-radius: 6px;
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+  transition: width 0.1s linear;
+}
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 1.35rem; /* más grande para leer manejando */
+  color: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Controles de Reproducción */
+.playback-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.btn-ctrl {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease-out;
+  box-shadow: var(--shadow-btn);
+}
+
+.btn-ctrl:active {
+  transform: scale(0.92);
+}
+
+.btn-secondary {
+  width: 46px;
+  height: 46px;
+  color: var(--text-secondary);
+}
+
+.btn-secondary.active {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 14px var(--accent-blue-glow);
+}
+
+.btn-secondary svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-nav {
+  width: 54px;
+  height: 54px;
+}
+
+.btn-nav svg {
+  width: 24px;
+  height: 24px;
+}
+
+.btn-play-main {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #2b3342 0%, #1c222c 100%);
+  border: 2px solid var(--border-light);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.btn-play-main:hover {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 20px var(--accent-blue-glow);
+}
+
+.btn-play-main svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* ================= COLUMNA 2: EXPLORADOR DE PENDRIVE (Ahora a la izquierda) ================= */
+.explorer-panel,
+.right-panel {
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.browser-header {
+  padding: 10px 14px 8px 14px;
+  background: #15181f;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.browser-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.tree-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tree-actions.hidden {
+  display: none !important;
+}
+
+.btn-tree-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.btn-tree-action:hover {
+  background: #273549;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+
+.btn-tree-action:active {
+  transform: scale(0.92);
+}
+
+.btn-tree-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.browser-tabs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 8px 11px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--accent-blue);
+  color: #0c0e12;
+  font-weight: 800;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+}
+
+.tab-btn.active .tab-icon {
+  stroke: #0c0e12;
+}
+
+.tab-btn.active #songCount {
+  color: #0c0e12;
+  font-weight: 800;
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Panel de Filtros de Búsqueda */
+.search-filters-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 6px 0;
+  scrollbar-width: none;
+}
+
+.search-filters-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.filters-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  margin-right: 2px;
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.filter-chip {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 7px 15px;
+  border-radius: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  background: #273549;
+  color: #fff;
+}
+
+.filter-chip.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #0d0f14;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.filter-chip.chip-folder-marquee {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.chip-folder-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13.5px;
+}
+
+.chip-folder-text-wrap {
+  display: inline-flex;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 150px;
+  position: relative;
+}
+
+.chip-folder-text {
+  display: inline-block;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.filter-chip.chip-usb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.usb-icon {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.chip-folder-usb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.filter-chip.active .chip-folder-usb-badge {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: inherit;
+}
+
+.chip-folder-usb-badge .usb-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.chip-folder-sep {
+  opacity: 0.65;
+  font-weight: 400;
+  margin: 0 4px;
+  flex-shrink: 0;
+  font-size: 13px;
+  user-select: none;
+}
+
+.filter-chip.hidden {
+  display: none;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-deep);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 46px;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px var(--accent-blue-glow);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 1.05rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.search-spinner.hidden {
+  display: none !important;
+}
+
+.spinner-svg {
+  width: 20px;
+  height: 20px;
+  animation: spinSearch 0.75s linear infinite;
+}
+
+@keyframes spinSearch {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.btn-clear {
+  background: #1e2430;
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-clear:hover {
+  background: var(--accent-red-alert);
+  border-color: var(--accent-red-alert);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+}
+
+.btn-clear.hidden {
+  display: none !important;
+}
+
+.folder-breadcrumbs {
+  padding: 6px 16px;
+  background: #101318;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.crumb.active {
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+.crumb svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Lista Scrolleable Táctil: Permite scroll horizontal para subniveles profundos de carpetas,
+   y elimina la barra vertical nativa para que SOLO viva el FastScroller táctil ergonómico */
+.scroll-track-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 6px 12px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.45) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ocultar ÚNICAMENTE la barra VERTICAL (width: 0) para que no se duplique con el FastScroller táctil,
+   pero permitiendo la barra HORIZONTAL en la base si hay subniveles profundos de carpetas */
+.scroll-track-list::-webkit-scrollbar {
+  width: 0px !important;
+  height: 6px;
+}
+
+.scroll-track-list::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.5);
+  border-radius: 3px;
+}
+
+.scroll-track-list::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.45);
+  border-radius: 3px;
+}
+
+.scroll-track-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.8);
+}
+
+/* Elementos de la Lista */
+.list-item {
+  height: 58px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.list-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-light);
+}
+
+.list-item:active {
+  transform: scale(0.99);
+}
+
+.list-item.is-playing {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: var(--accent-blue);
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.item-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #151922;
+  border: 1.5px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent-blue);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.item-icon-wrap:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent-blue);
+  color: #ffffff;
+  transform: scale(1.06);
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+.item-icon-wrap:active {
+  transform: scale(0.92);
+}
+
+.list-item.is-playing .item-icon-wrap {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #0c0e12;
+  box-shadow: 0 0 12px var(--accent-blue-glow);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.item-info:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.item-title-wrap {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.item-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.list-item:not(.is-playing):not(.is-expanded) .item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.list-item.is-playing .item-title {
+  color: var(--accent-blue);
+}
+
+/* Modo Expandido: Al hacer touch en el texto muestra todo el nombre sin cortar */
+.list-item.is-expanded {
+  height: auto;
+  min-height: 64px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: rgba(56, 189, 248, 0.06);
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.list-item.is-expanded .item-title-wrap {
+  white-space: normal;
+  overflow: visible;
+}
+
+.list-item.is-expanded .item-title {
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: clip;
+  color: var(--accent-blue);
+  line-height: 1.35;
+}
+
+.list-item.is-expanded .item-subtitle {
+  white-space: normal;
+  flex-wrap: wrap;
+}
+
+.list-item.is-expanded .item-subtitle .path-text {
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Badges de Almacenamiento USB 1, USB 2 e Interna */
+.badge-storage {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.badge-storage .usb-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.badge-storage.usb1 {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.15);
+}
+
+.badge-storage.usb2 {
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.15);
+}
+
+.badge-storage.internal {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.item-subtitle {
+  font-size: 0.80rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.item-subtitle .path-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.item-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-duration {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.btn-item-fav.is-fav {
+  color: #f43f5e;
+}
+
+.btn-item-fav svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ======================================================== */
+/* ÁRBOL JERÁRQUICO DE CARPETAS USB (Estilo Maqueta Hernan)  */
+/* ======================================================== */
+.tree-node-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+  background: #141822;
+  border: 1px solid #232b3a;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+  position: relative;
+  width: 100%;
+  min-width: max-content;
+  box-sizing: border-box;
+}
+
+.tree-node-item:hover {
+  background: #1a2130;
+  border-color: #38bdf8;
+}
+
+.tree-node-item.is-active-folder {
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+}
+
+.tree-node-item.is-playing-folder {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+}
+
+.tree-node-item.is-playing-folder .tree-node-icon {
+  background: var(--accent-blue);
+  color: #0b0f17;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.tree-node-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tree-toggle-arrow {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+  border-radius: 6px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.tree-toggle-arrow.is-expanded svg {
+  transform: rotate(90deg);
+}
+
+.tree-toggle-arrow.no-children {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.tree-node-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tree-node-icon.is-usb-root {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
+.tree-node-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.tree-node-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.tree-node-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.tree-node-path {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botón Reproducir Carpeta [ N ▶ ] (Número primero, Play al final fijo) */
+.btn-folder-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1.5px solid #38bdf8;
+  color: #ffffff;
+  padding: 6px 14px;
+  min-width: 72px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+  flex-shrink: 0;
+  user-select: none;
+  margin-left: 10px;
+}
+
+.btn-folder-play:hover {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.65);
+  transform: scale(1.05);
+}
+
+.btn-folder-play:active {
+  transform: scale(0.95);
+}
+
+.btn-folder-play .play-circle {
+  width: 24px;
+  height: 24px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-folder-play .play-circle svg {
+  width: 13px;
+  height: 13px;
+  fill: #0369a1;
+  margin-left: 2px;
+}
+
+.btn-folder-play .track-count-num {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Estado de Búsqueda Vacía y Resaltado */
+.empty-search-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.empty-search-box .empty-icon {
+  width: 48px;
+  height: 48px;
+  color: #333c4d;
+}
+
+.empty-search-box .empty-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-search-box .empty-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+.btn-clear-search-action {
+  margin-top: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--accent-blue);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-clear-search-action:hover {
+  background: var(--accent-blue);
+  color: #0c0e12;
+}
+
+.search-highlight {
+  color: #38bdf8;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(56, 189, 248, 0.4);
+}
+
+.btn-item-fav.is-fav {
+  color: #f43f5e;
+}
+
+.btn-item-fav svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Footer del Navegador */
+.browser-footer {
+  height: 42px;
+  background: #101318;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.storage-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.icon-tiny {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-footer-action {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--accent-titanium);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-footer-action:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ================= FASTSCROLLER LATERAL ERGONÓMICO Y BURBUJA FLOTANTE A-Z ================= */
+.track-list-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+  width: 100%;
+}
+
+.track-list-wrapper .scroll-track-list {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  transition: filter 0.18s ease, opacity 0.18s ease;
+}
+
+/* Efecto borroso y atenuado del listado mientras se realiza la búsqueda */
+.scroll-track-list.is-searching {
+  filter: blur(5px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Overlay flotante central mientras busca pistas */
+.search-overlay-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(11, 18, 32, 0.94);
+  border: 2px solid var(--accent-blue);
+  border-radius: 18px;
+  padding: 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.35);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.search-overlay-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3.5px solid rgba(56, 189, 248, 0.2);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.search-overlay-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.web-fast-scroller {
+  position: relative;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  margin: 6px 4px 6px 4px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  cursor: pointer;
+  touch-action: none;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.web-fast-thumb {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+  border: 1.5px solid #7dd3fc;
+  border-radius: 11px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+  cursor: grab;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.04s ease-out;
+}
+
+.web-fast-bubble {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  width: 115px;
+  height: 105px;
+  background: rgba(11, 18, 32, 0.95);
+  border: 2.5px solid var(--accent-blue);
+  border-radius: 22px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.web-fast-bubble.is-active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.bubble-letter {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+.bubble-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  margin-top: 4px;
+}
+
+/* ======================================================== */
+/* MI MIX (reemplaza a Favoritos)                            */
+/* ======================================================== */
+
+/* Botón + / ✓ / ✕ de cada canción: grande para tocarlo manejando */
+.btn-item-mix {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #151922;
+  border: 1.5px solid var(--border-light);
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-item-mix svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-item-mix:active {
+  transform: scale(0.92);
+}
+
+/* Ya está en Mi Mix */
+.btn-item-mix.is-in-mix {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #0c0e12;
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+/* Quitar (dentro de Mi Mix) */
+.btn-item-mix.is-remove {
+  color: #94a3b8;
+}
+
+.btn-item-mix.is-remove:hover {
+  color: #f43f5e;
+  border-color: rgba(244, 63, 94, 0.5);
+}
+
+/* + de una carpeta, al lado de [N ▶] */
+.btn-folder-addmix {
+  width: 38px;
+  height: 36px;
+  border-radius: 10px;
+  background: #151922;
+  border: 1.5px solid #38bdf8;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.18s ease;
+}
+
+.btn-folder-addmix svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-folder-addmix:active {
+  transform: scale(0.92);
+}
+
+.btn-folder-addmix + .btn-folder-play {
+  margin-left: 8px;
+}
+
+/* Cabecera de la pestaña Mi Mix */
+.mix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.03));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+}
+
+.mix-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mix-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mix-live-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #00d2ff;
+  text-shadow: 0 0 6px rgba(0, 210, 255, 0.5);
+}
+
+.mix-header-sub {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mix-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-mix-action {
+  height: 42px;
+  min-width: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: #151922;
+  border: 1.5px solid var(--border-light);
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-mix-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-mix-action:active {
+  transform: scale(0.95);
+}
+
+.btn-mix-action:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.btn-mix-action.is-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+}
+
+.btn-mix-action.is-danger {
+  background: rgba(244, 63, 94, 0.15);
+  border-color: #f43f5e;
+  color: #fda4af;
+}
+
+/* Posición en la lista (01, 02...) en lugar del ▶ */
+.mix-position {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #cbd5e1;
+}
+
+.mix-item .item-icon-wrap svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Ya sonó: queda en la lista, apagada y con ✓ */
+.mix-item.is-played {
+  opacity: 0.5;
+}
+
+.mix-item.is-played .item-icon-wrap {
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.mix-item.is-played .item-title {
+  color: #94a3b8;
+}
+
+/* Aviso corto al pie del explorador */
+.mix-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translate(-50%, 12px);
+  background: rgba(12, 16, 24, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 14px rgba(56, 189, 248, 0.25);
+  color: #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mix-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ======================================================== */
+/* DISEÑO 2.6: CONTROLES MODERNOS Y FONDO CON EL COLOR DE LA CARÁTULA */
+/* ======================================================== */
+
+/* Color de la carátula (r g b). Registrado para que el cambio entre canciones sea un fundido suave */
+@property --th-r { syntax: '<number>'; inherits: true; initial-value: 23; }
+@property --th-g { syntax: '<number>'; inherits: true; initial-value: 60; }
+@property --th-b { syntax: '<number>'; inherits: true; initial-value: 92; }
+/* Resplandor alrededor de la carátula: el mismo color, más claro. Es lo único resaltado que toma el color de la canción */
+@property --gl-r { syntax: '<number>'; inherits: true; initial-value: 56; }
+@property --gl-g { syntax: '<number>'; inherits: true; initial-value: 189; }
+@property --gl-b { syntax: '<number>'; inherits: true; initial-value: 248; }
+
+.screen-frame-wrapper {
+  --th-r: 23;
+  --th-g: 60;
+  --th-b: 92;
+  /* Más intenso arriba a la derecha (detrás de la carátula), más suave sobre el explorador y hacia abajo */
+  background:
+    radial-gradient(120% 95% at 78% 4%, rgb(var(--th-r) var(--th-g) var(--th-b) / 0.80) 0%, rgb(var(--th-r) var(--th-g) var(--th-b) / 0) 62%),
+    linear-gradient(172deg, rgb(var(--th-r) var(--th-g) var(--th-b) / 0.50) 0%, rgb(var(--th-r) var(--th-g) var(--th-b) / 0.18) 48%, #07090c 100%),
+    #07090c;
+  /* --th-dur: 1,2 s al cambiar de canción; en una mezcla de Automix dura lo mismo que la mezcla */
+  transition: --th-r var(--th-dur, 1.2s) ease, --th-g var(--th-dur, 1.2s) ease, --th-b var(--th-dur, 1.2s) ease,
+    --gl-r var(--th-dur, 1.2s) ease, --gl-g var(--th-dur, 1.2s) ease, --gl-b var(--th-dur, 1.2s) ease,
+    width 0.3s, height 0.3s;
+}
+
+/* Paneles translúcidos: el color se ve a través de toda la app */
+.car-status-bar {
+  background: rgba(6, 8, 11, 0.38);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.driver-volume-strip {
+  background: rgba(6, 8, 11, 0.45);
+  border-right-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.explorer-panel {
+  background-color: rgba(6, 8, 11, 0.42);
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+.browser-header {
+  background: rgba(6, 8, 11, 0.22);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.browser-footer {
+  background: rgba(6, 8, 11, 0.3);
+}
+
+.player-panel {
+  background: transparent;
+  border-left-color: rgba(255, 255, 255, 0.06);
+}
+
+.search-box {
+  background: rgba(0, 0, 0, 0.32);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.list-item,
+.tree-node-item {
+  background: rgba(10, 12, 17, 0.5);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.list-item:hover,
+.tree-node-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.list-item.is-playing {
+  background: rgba(56, 189, 248, 0.14);
+}
+
+.adjacent-tracks-preview {
+  background: rgba(0, 0, 0, 0.26);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.tab-btn:not(.active),
+.filter-chip:not(.active) {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* --- Barra de progreso fina con punto blanco (estilo YouTube Music) --- */
+.progress-bar-container {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  border-radius: 3px;
+  overflow: visible;
+  margin: 9px 0; /* zona táctil más alta que la línea */
+}
+
+.progress-bar-container::before {
+  /* Área táctil invisible de 28px para acertar manejando */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  bottom: -12px;
+}
+
+.progress-buffered {
+  display: none;
+}
+
+.progress-current {
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.progress-current::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.progress-scrubber {
+  display: none;
+}
+
+.time-row {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* --- Controles: íconos blancos sin caja; play/pausa en círculo blanco grande --- */
+.playback-controls {
+  gap: 18px;
+  margin-top: 2px;
+}
+
+.btn-ctrl,
+.btn-secondary,
+.btn-nav {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.btn-nav {
+  width: 64px;
+  height: 64px;
+}
+
+.btn-nav svg {
+  width: 40px;
+  height: 40px;
+}
+
+.btn-secondary {
+  width: 56px;
+  height: 56px;
+  color: rgba(255, 255, 255, 0.85);
+  position: relative;
+}
+
+.btn-secondary svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Aleatorio / Repetir activos: cian y un punto debajo (se distingue de un vistazo) */
+.btn-secondary.active {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #38bdf8;
+}
+
+.btn-secondary.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: #38bdf8;
+}
+
+.btn-play-main {
+  width: 84px;
+  height: 84px;
+  background: #ffffff;
+  border: none;
+  color: #0c0e12;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+}
+
+.btn-play-main:hover {
+  border: none;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.15);
+}
+
+.btn-play-main svg {
+  width: 38px;
+  height: 38px;
+}
+
+.btn-ctrl:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btn-play-main:hover {
+  background: #ffffff;
+}
+
+/* Reproductor a pantalla completa: misma escala, un poco más grande */
+.dashboard-grid.is-expanded .btn-play-main {
+  width: 88px;
+  height: 88px;
+}
+
+.dashboard-grid.is-expanded .btn-nav {
+  width: 66px;
+  height: 66px;
+}
+
+.dashboard-grid.is-expanded .btn-ctrl.btn-secondary {
+  width: 58px;
+  height: 58px;
+}
+
+/* Artista y álbum en una sola línea: un artista largo ya no empuja los controles fuera de la pantalla */
+.track-details {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.track-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.track-album {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Con el explorador abierto el reproductor es más angosto: controles un poco más chicos */
+.dashboard-grid:not(.is-expanded) .playback-controls {
+  gap: 12px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-play-main {
+  width: 76px;
+  height: 76px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-play-main svg {
+  width: 34px;
+  height: 34px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-nav {
+  width: 58px;
+  height: 58px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-nav svg {
+  width: 36px;
+  height: 36px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-secondary {
+  width: 52px;
+  height: 52px;
+}
+
+.dashboard-grid:not(.is-expanded) .btn-secondary svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Resplandor de la carátula con el color de la canción (decorativo: no afecta la lectura) */
+.album-art-container {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--border-subtle),
+    0 0 30px 2px rgb(var(--gl-r) var(--gl-g) var(--gl-b) / 0.55),
+    0 0 70px 14px rgb(var(--gl-r) var(--gl-g) var(--gl-b) / 0.30);
+}
+
+/* Botón Automix como interruptor: ON = cian lleno con brillo; OFF = oscuro y apagado. Con la palabra escrita */
+.btn-toggle-expand.btn-automix {
+  width: 56px;
+  height: 52px;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #64748b;
+  box-shadow: none;
+}
+
+.btn-toggle-expand.btn-automix svg {
+  width: 24px;
+  height: 24px;
+}
+
+.automix-state {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.btn-toggle-expand.btn-automix.is-active {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #0c0e12;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+}
+
+.btn-toggle-expand.btn-automix:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+/* Reproducir de Mi Mix: solo el ▶, cuadrado, para que el resumen entre completo */
+.btn-mix-action.btn-mix-play-icon {
+  width: 52px;
+  padding: 0;
+}
+
+.btn-mix-action.btn-mix-play-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Reordenar Mi Mix: botón de cabecera y manija en cada fila */
+.btn-mix-action.btn-mix-reorder {
+  width: 46px;
+  padding: 0;
+  color: #38bdf8;
+}
+
+.btn-mix-action.btn-mix-reorder svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-mix-action.btn-mix-reorder-done {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  padding: 0 16px;
+  font-weight: 800;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+}
+
+.btn-item-mix.is-drag-handle {
+  cursor: grab;
+  touch-action: none;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.10);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.btn-item-mix.is-drag-handle:active {
+  cursor: grabbing;
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+}
+
+.btn-item-mix.is-drag-handle svg {
+  width: 22px;
+  height: 22px;
+  stroke: #38bdf8;
+}
+
+.mix-item.is-dragging {
+  display: none !important;
+}
+
+.floating-drag-clone {
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: #0f172a !important;
+  border: 2px solid #38bdf8 !important;
+  border-radius: 10px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(56, 189, 248, 0.45);
+  z-index: 99999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  transform: scale(1.02);
+  will-change: transform;
+  user-select: none;
+}
+
+.gap-placeholder {
+  height: 58px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.05);
+  border: 2px dashed rgba(56, 189, 248, 0.45);
+  box-shadow: inset 0 0 16px rgba(56, 189, 248, 0.12);
+  margin: 3px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+.mix-item.pulse-landed {
+  animation: neonLandRipple 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  border-left: 4px solid #38bdf8 !important;
+}
+
+@keyframes neonLandRipple {
+  0% {
+    background-color: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+    transform: scale(1.015);
+  }
+  40% {
+    background-color: rgba(56, 189, 248, 0.15);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Mi Mix sonando: punto cian en la pestaña (opción C). Late mientras suena; quieto en pausa.
+   Grande y sin brillo difuso, para que se vea nítido en la pantalla del radio */
+.tab-live-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #38bdf8;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.tab-btn.active .tab-live-dot {
+  background: #0c0e12;
+}
+
+.tab-live-dot.is-playing {
+  animation: liveDotPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes liveDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.7); }
+}
+
+/* Reproductor: "Mi Mix · 2 de 4" en lugar de la carpeta (opción 2) */
+.mix-source {
+  color: #cbd5e1;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mix-source-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.mix-source-pos {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+
+/* ======================================================================
+   JH VIDEO — lo propio de la app de videos (va después de los estilos de JH MUSIC)
+   ====================================================================== */
+
+/* Barra superior del reproductor (oculta en JH VIDEO): lupa | cápsula + formato, en fila arriba del video
+   (en JH MUSIC flotan a los lados de la carátula; con el video a todo el ancho lo taparían) */
+.player-top-bar {
+  position: static;
+  pointer-events: auto;
+  margin-bottom: 10px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.player-top-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* La cápsula va en la barra de arriba: así no tapa el video (abajo al centro van los subtítulos) */
+.player-top-center .now-playing-pill {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+}
+
+.now-playing-pill.is-playing {
+  border-color: rgba(0, 210, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 210, 255, 0.3);
+}
+
+.now-playing-pill.is-playing .pill-label {
+  color: var(--accent-blue);
+  text-shadow: 0 0 4px rgba(0, 210, 255, 0.4);
+}
+
+.now-playing-pill.is-playing .pill-eq-bars span {
+  background: linear-gradient(to top, var(--accent-blue), #67e8f9);
+}
+
+.now-playing-pill.is-playing .pill-eq-bars span:nth-child(1) { animation: pillWave 0.7s infinite alternate ease-in-out; }
+.now-playing-pill.is-playing .pill-eq-bars span:nth-child(2) { animation: pillWave 0.5s 0.15s infinite alternate ease-in-out; }
+.now-playing-pill.is-playing .pill-eq-bars span:nth-child(3) { animation: pillWave 0.8s 0.3s infinite alternate ease-in-out; }
+.now-playing-pill.is-playing .pill-eq-bars span:nth-child(4) { animation: pillWave 0.6s 0.2s infinite alternate ease-in-out; }
+.now-playing-pill.is-playing .pill-eq-bars span:nth-child(5) { animation: pillWave 0.75s 0.05s infinite alternate ease-in-out; }
+
+/* Formato (MP4 720P) al lado de la cápsula, en etiqueta normal (no en la esquina del video) */
+.player-top-center .audio-badge {
+  position: static;
+  top: auto;
+  right: auto;
+  font-size: 0.72rem;
+  padding: 5px 9px;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+/* Cuadro del video 16:9 a todo el ancho del reproductor */
+.album-art-wrap.video-wrap {
+  margin-bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.album-art-container.video-frame,
+.dashboard-grid.is-expanded .album-art-container.video-frame {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+}
+
+/* Sin la cápsula/formato de arriba ni la línea de artista: el reproductor queda más limpio
+   y ese espacio lo usa el video (que no empuje los controles fuera de los 600 px de alto) */
+.player-top-center,
+.player-panel .track-details {
+  display: none;
+}
+
+/* Sin lupa: el video queda arriba del todo. Para verlo grande se toca (pantalla completa, sin explorador) */
+.player-top-bar {
+  display: none;
+}
+
+.player-panel .now-playing-card {
+  gap: 10px;
+  padding-top: 6px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.album-art-container.video-frame {
+  width: min(100%, 420px);
+}
+
+.dashboard-grid.is-expanded .album-art-container.video-frame {
+  width: min(100%, 470px);
+}
+
+.player-panel .now-playing-card {
+  gap: 6px;
+}
+
+.player-top-bar {
+  margin-bottom: 6px;
+}
+
+.video-frame .album-art-inner {
+  border-radius: 13.5px;
+  background: #000;
+}
+
+.video-frame .album-art-img {
+  display: none !important;
+}
+
+.video-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: none;
+  z-index: 1;
+}
+
+.video-frame.has-video video.video-el,
+.video-frame.has-sim canvas.video-el {
+  display: block;
+}
+
+.video-frame .album-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ---------------- Pantalla completa ---------------- */
+.screen-frame-wrapper.is-video-fs .dashboard-grid,
+.screen-frame-wrapper.is-video-fs .player-panel,
+.screen-frame-wrapper.is-video-fs .now-playing-card,
+.screen-frame-wrapper.is-video-fs .album-art-wrap {
+  position: static !important;
+}
+
+/* Como las apps de video para auto: desaparece todo (barra superior, explorador y controles)
+   menos la tira de volumen de la izquierda, porque el auto no tiene botones físicos */
+.screen-frame-wrapper.is-video-fs .album-art-container.video-frame {
+  position: absolute;
+  inset: 0 0 0 54px;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: 0 14px 14px 0;
+  padding: 0;
+  z-index: 100;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.screen-frame-wrapper.is-video-fs .video-frame .album-art-inner {
+  border-radius: 0 14px 14px 0;
+}
+
+.screen-frame-wrapper.is-video-fs .driver-volume-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 54px;
+  z-index: 101;
+  border-radius: 14px 0 0 14px;
+  background: #0b0d11;
+}
+
+/* Lo que queda detrás del video no se dibuja (para que no asome por la tira de volumen) */
+.screen-frame-wrapper.is-video-fs .car-status-bar,
+.screen-frame-wrapper.is-video-fs .explorer-panel,
+.screen-frame-wrapper.is-video-fs .player-top-bar,
+.screen-frame-wrapper.is-video-fs .track-meta,
+.screen-frame-wrapper.is-video-fs .adjacent-tracks-preview,
+.screen-frame-wrapper.is-video-fs .progress-section,
+.screen-frame-wrapper.is-video-fs .playback-controls {
+  visibility: hidden;
+}
+
+.screen-frame-wrapper.is-video-fs .video-frame .laser-spinner,
+.screen-frame-wrapper.is-video-fs .video-frame .laser-spinner-mix,
+.screen-frame-wrapper.is-video-fs .video-frame .album-glow {
+  display: none;
+}
+
+.fs-overlay {
+  display: none;
+}
+
+.screen-frame-wrapper.is-video-fs .fs-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.screen-frame-wrapper.is-video-fs .fs-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fs-top,
+.fs-bottom {
+  padding: 14px 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.fs-top {
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.fs-bottom {
+  flex-direction: column;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  padding-top: 40px;
+}
+
+.fs-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.fs-btn {
+  width: 64px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 14, 22, 0.6);
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fs-btn svg {
+  width: 30px;
+  height: 30px;
+}
+
+.fs-btn.fs-play {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #0b0d11;
+  border: 0;
+}
+
+.fs-btn.fs-play svg {
+  width: 36px;
+  height: 36px;
+}
+
+/* Zona de toque de 34 px de alto (fácil de acertar con el dedo); la barra que se ve mide 8 px */
+.fs-progress {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.fs-track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.fs-progress-fill {
+  height: 100%;
+  width: 0;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.fs-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.fs-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.fs-time {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+.fs-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.fs-hint {
+  justify-self: end;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Video de borde a borde en el reproductor (sin el espacio de alrededor) y con esquinas rectas.
+   Sin marco no hay dónde girar el borde láser, así que no se muestra */
+.player-panel .now-playing-card {
+  padding-top: 0;
+}
+
+.album-art-wrap.video-wrap {
+  margin: -12px -20px 0;
+  width: calc(100% + 40px);
+}
+
+.album-art-container.video-frame,
+.dashboard-grid.is-expanded .album-art-container.video-frame {
+  width: 100%;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.video-frame .album-art-inner {
+  border-radius: 0;
+}
+
+.video-frame .laser-spinner,
+.video-frame .laser-spinner-mix {
+  display: none;
+}
+
+/* En JH MUSIC la carátula se achica un poco mientras se presiona (respuesta al toque). En el video
+   no: en pantalla completa los botones están dentro del cuadro y todo el video se achicaba al tocar play */
+.album-art-container.video-frame:active,
+.screen-frame-wrapper.is-video-fs .album-art-container.video-frame:active {
+  transform: none;
+  box-shadow: none;
+}

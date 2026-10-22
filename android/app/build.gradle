@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.jh.carvideo'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.jh.carvideo"
+        minSdk 21
+        targetSdk 28
+        versionCode 5
+        versionName "1.0.4"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // Nombre del APK con la versión: JH-VIDEO-v1.0.0.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "JH-VIDEO-v${variant.versionName}.apk"
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.recyclerview:recyclerview:1.3.0'
+    // ExoPlayer: lee el archivo por su cuenta (duración, posición y saltos sin depender del reproductor del radio)
+    implementation 'androidx.media3:media3-exoplayer:1.1.1'
+}
+
+// Al terminar assembleDebug, copia el APK a la carpeta jh-video/ (al lado de la maqueta)
+// reemplazando el de la versión anterior (el historial de git conserva los viejos)
+tasks.register('copyApkToRoot') {
+    doLast {
+        def repoRoot = rootProject.projectDir.parentFile
+        project.delete(fileTree(repoRoot) { include 'JH-VIDEO-v*.apk' })
+        project.copy {
+            from layout.buildDirectory.dir('outputs/apk/debug')
+            include '*.apk'
+            into repoRoot
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.named('assembleDebug').configure { finalizedBy 'copyApkToRoot' }
+}

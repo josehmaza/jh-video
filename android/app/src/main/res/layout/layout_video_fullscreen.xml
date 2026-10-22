@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantalla completa del video (como las apps de video para auto): tapa todo menos la tira de volumen
+     de la izquierda (54dp), porque el auto no tiene botones físicos.
+     Un toque muestra u oculta los controles; doble toque sale -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutVideoFs"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginStart="54dp"
+    android:layout_marginLeft="54dp"
+    android:background="#000000"
+    android:visibility="gone">
+
+    <TextureView
+        android:id="@+id/videoTextureFs"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Controles encima del video: se ocultan solos a los 3 s mientras se reproduce -->
+    <LinearLayout
+        android:id="@+id/layoutFsControls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Arriba: título y salir de pantalla completa -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_fs_top"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/tvFsTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="end"
+                android:shadowColor="#b3000000"
+                android:shadowDy="2"
+                android:shadowRadius="6"
+                android:singleLine="true"
+                android:textColor="#ffffff"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnFsExit"
+                android:layout_width="64dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_fs_btn"
+                android:contentDescription="Salir de pantalla completa"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_fs_exit" />
+        </LinearLayout>
+
+        <!-- Centro libre: ahí se toca para mostrar u ocultar los controles -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Abajo: barra de progreso que se arrastra, tiempo y controles -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_fs_bottom"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="40dp"
+            android:paddingBottom="14dp">
+
+            <!-- Zona de toque de 34dp de alto (fácil de acertar con el dedo); la barra que se ve mide 8dp -->
+            <SeekBar
+                android:id="@+id/seekFsProgress"
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:max="1000"
+                android:maxHeight="8dp"
+                android:minHeight="8dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:progress="0"
+                android:progressDrawable="@drawable/seekbar_fs_progress"
+                android:splitTrack="false"
+                android:thumb="@drawable/seekbar_fs_thumb"
+                android:thumbOffset="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvFsTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:singleLine="true"
+                    android:text="00:00 / 00:00"
+                    android:textColor="#e2e8f0"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnFsPrev"
+                    android:layout_width="64dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_fs_btn"
+                    android:contentDescription="Anterior"
+                    android:padding="13dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_ctrl_prev" />
+
+                <ImageButton
+                    android:id="@+id/btnFsPlay"
+                    android:layout_width="76dp"
+                    android:layout_height="76dp"
+                    android:layout_marginStart="26dp"
+                    android:layout_marginEnd="26dp"
+                    android:background="@drawable/bg_ctrl_play"
+                    android:contentDescription="Reproducir / Pausar"
+                    android:padding="20dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_ctrl_play" />
+
+                <ImageButton
+                    android:id="@+id/btnFsNext"
+                    android:layout_width="64dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_fs_btn"
+                    android:contentDescription="Siguiente"
+                    android:padding="13dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_ctrl_next" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:text="Un toque: controles · Doble toque: salir"
+                    android:textColor="#99ffffff"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

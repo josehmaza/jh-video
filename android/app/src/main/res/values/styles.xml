@@ -1,0 +1,7 @@
+<resources>
+    <!-- Tema automotriz inmersivo a pantalla completa sin barras del sistema -->
+    <style name="Theme.CarAudio" parent="android:Theme.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">#0c0e12</item>
+        <item name="android:colorBackground">#0c0e12</item>
+    </style>
+</resources>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:descendantFocusability="blocksDescendants"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Indicador de Pista / Botón Táctil de Reproducción Inmediata -->
+    <TextView
+        android:id="@+id/tvItemIndex"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:gravity="center"
+        android:background="@drawable/bg_btn_action"
+        android:text="01"
+        android:textColor="@color/accent_cyan"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <!-- Datos de la Canción -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp">
+
+        <!-- Título con soporte de Marquesina activa cuando reproduce -->
+        <com.jh.carvideo.CarMarqueeTextView
+            android:id="@+id/tvItemTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:text="Título del video"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Subtítulo con Etiqueta USB alineada al inicio + Artista y Álbum -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="3dp">
+
+            <TextView
+                android:id="@+id/tvItemUsbBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_usb1"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="USB 1"
+                android:textColor="@color/accent_cyan"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvItemArtist"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="Artista • Álbum"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Duración -->
+    <TextView
+        android:id="@+id/tvItemDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="03:45"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- Botón Mi Mix: + agregar / ✓ ya está / ✕ quitar (sin robar focus a la fila) -->
+    <ImageButton
+        android:id="@+id/btnItemMix"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_btn_action"
+        android:src="@drawable/ic_mix_add"
+        android:scaleType="center"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:contentDescription="Agregar a Mi Lista" />
+
+</LinearLayout>

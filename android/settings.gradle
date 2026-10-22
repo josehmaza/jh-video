@@ -1,0 +1,2 @@
+rootProject.name = "JH Car Video"
+include ':app'
