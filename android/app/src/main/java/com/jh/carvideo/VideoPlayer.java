@@ -71,6 +71,7 @@ final class VideoPlayer {
     private boolean ended;
     private boolean fallingBack;       // ExoPlayer ya falló con este archivo: no avisar "listo"
     private String radioReason;        // por qué este archivo lo abre el radio
+    private String videoProblem;       // "video AV1": suena con ExoPlayer, pero el video no se puede mostrar
     private boolean released;
 
     VideoPlayer(Context context, Handler handler, Listener listener) {
@@ -87,6 +88,7 @@ final class VideoPlayer {
         ended = false;
         fallingBack = false;
         radioReason = null;
+        videoProblem = null;
         String failure = exoFailures.get(path);
         if (failure != null) {
             releaseExo();
@@ -201,6 +203,11 @@ final class VideoPlayer {
         return radioPlayer != null ? radioReason : null;
     }
 
+    /** "video AV1" si el archivo suena pero su video no se puede mostrar en este radio; null si se ve. */
+    String getVideoProblem() {
+        return exo != null ? videoProblem : null;
+    }
+
     void release() {
         released = true;
         openId++;
@@ -238,13 +245,26 @@ final class VideoPlayer {
             if (fallingBack) return;
             if (!prepared) {
                 if (state == Player.STATE_READY) {
-                    // Abrió, pero quizás sin poder decodificar el video o el audio: el radio quizás sí puede
-                    String problem = unsupportedTrack(exo.getCurrentTracks());
+                    // Abrió, pero quizás sin poder decodificar el audio o el video
+                    Tracks tracks = exo.getCurrentTracks();
+                    boolean hasVideo = tracks.containsType(C.TRACK_TYPE_VIDEO);
+                    boolean hasAudio = tracks.containsType(C.TRACK_TYPE_AUDIO);
+                    String video = unsupported(tracks, C.TRACK_TYPE_VIDEO);
+                    String audio = unsupported(tracks, C.TRACK_TYPE_AUDIO);
+                    // Un .avi con códecs que ExoPlayer no conoce queda sin pistas
+                    String problem = !hasVideo && !hasAudio ? "no reconoce sus pistas"
+                            : audio != null ? "no decodifica " + audio
+                            : video != null && !hasAudio ? "no decodifica " + video
+                            : null;
                     if (problem != null) {
+                        // El radio quizás sí puede
                         fallingBack = true;
                         postFallback(problem);
                         return;
                     }
+                    // Video que el radio no decodifica con audio que sí: el reproductor del radio tampoco
+                    // lo muestra (en el auto, el AV1 sonaba en negro) y además no saltaba. Suena aquí
+                    videoProblem = video;
                     prepared = true;
                     listener.onPrepared();
                 } else if (state == Player.STATE_ENDED) {
@@ -322,27 +342,17 @@ final class VideoPlayer {
         return text + " " + error.errorCode;
     }
 
-    /**
-     * "no decodifica video AV1": lo que ExoPlayer no puede mostrar o hacer sonar de este archivo;
-     * null si puede con todo.
-     */
-    private static String unsupportedTrack(Tracks tracks) {
-        boolean hasVideo = tracks.containsType(C.TRACK_TYPE_VIDEO);
-        boolean hasAudio = tracks.containsType(C.TRACK_TYPE_AUDIO);
-        // Un .avi con códecs que ExoPlayer no conoce queda sin pistas
-        if (!hasVideo && !hasAudio) return "no reconoce sus pistas";
-        for (int type : new int[]{C.TRACK_TYPE_VIDEO, C.TRACK_TYPE_AUDIO}) {
-            if (!tracks.containsType(type) || tracks.isTypeSupported(type, true)) continue;
-            String mime = null;
-            for (Tracks.Group group : tracks.getGroups()) {
-                if (group.getType() != type || group.length == 0) continue;
-                Format format = group.getTrackFormat(0);
-                mime = format.sampleMimeType != null ? format.sampleMimeType : format.codecs;
-                break;
-            }
-            return "no decodifica " + (type == C.TRACK_TYPE_VIDEO ? "video " : "audio ") + codecName(mime);
+    /** "video AV1": la pista de ese tipo que ExoPlayer no puede decodificar; null si puede o no hay. */
+    private static String unsupported(Tracks tracks, int type) {
+        if (!tracks.containsType(type) || tracks.isTypeSupported(type, true)) return null;
+        String mime = null;
+        for (Tracks.Group group : tracks.getGroups()) {
+            if (group.getType() != type || group.length == 0) continue;
+            Format format = group.getTrackFormat(0);
+            mime = format.sampleMimeType != null ? format.sampleMimeType : format.codecs;
+            break;
         }
-        return null;
+        return (type == C.TRACK_TYPE_VIDEO ? "video " : "audio ") + codecName(mime);
     }
 
     /** Nombre corto del códec para el aviso de arriba. */

@@ -16,6 +16,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Tapa el video mientras no llega un cuadro del archivo actual (si no, se ve el del anterior) -->
+    <LinearLayout
+        android:id="@+id/layoutFsPlaceholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivFsNoVideo"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/ic_video_placeholder" />
+    </LinearLayout>
+
     <!-- Controles encima del video: se ocultan solos a los 3 s mientras se reproduce -->
     <LinearLayout
         android:id="@+id/layoutFsControls"

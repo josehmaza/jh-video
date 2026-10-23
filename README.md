@@ -34,7 +34,11 @@ JH MUSIC y JH VIDEO tienen paquetes distintos (`com.jh.caraudio` y `com.jh.carvi
 ## Cómo está hecho (nativo)
 
 - **Reproductor: ExoPlayer** (Media3 1.1.1, `VideoPlayer.java`). Lee el archivo por su cuenta, así que la duración, la posición y los saltos no dependen del `MediaPlayer` del radio.
-  - Si ExoPlayer no puede con un archivo (formato que no conoce, o video o audio que no decodifica), ese archivo se abre con el `MediaPlayer` del radio, como antes. El monitor lo dice: "ⓘ Lo abre el reproductor del radio (ExoPlayer: no decodifica video AV1)".
+  - Si ExoPlayer no puede con un archivo (formato que no conoce, o audio que no decodifica), ese archivo se abre con el `MediaPlayer` del radio, como antes. El monitor lo dice: "ⓘ Lo abre el reproductor del radio (ExoPlayer: no decodifica video MP42)".
+  - Si el video no se puede decodificar pero el audio sí (por ejemplo AV1, que el radio no tiene), suena con ExoPlayer: la barra funciona y se ve el dibujo de "sin video" con el aviso "ⓘ El radio no puede mostrar video AV1: solo se escucha el audio". En el auto, el reproductor del radio tampoco lo mostraba (sonaba en negro) y no saltaba.
+- **Tapa del video:** el video queda tapado (negro) hasta que llega el primer cuadro del archivo nuevo. Si suena 2,5 s sin ningún cuadro, aparece el dibujo de "sin video".
+  - Antes quedaba a la vista el último cuadro del video anterior: en el auto, un `.avi` que el radio no podía mostrar se veía "congelado".
+  - La tapa va encima del `TextureView` (no se lo oculta) para que siga recibiendo cuadros. Los cuadros que llegan en los primeros 200 ms son del video anterior.
   - El APK pasó de 1,8 MB a 4 MB por ExoPlayer.
 - **MP4 fragmentados** (los que bajan los descargadores de YouTube): no dicen cuánto duran (`mvhd` = 0) ni traen índice al inicio (`sidx`). Solo tienen al final una tabla (`mfra`) con el tiempo y la posición de cada fragmento.
   - Ni el `MediaPlayer` ni ExoPlayer leen esa tabla: por eso el radio mostraba `00:00 / 00:00` y la barra no saltaba. El Android del emulador ni siquiera los abre.
@@ -54,7 +58,7 @@ JH MUSIC y JH VIDEO tienen paquetes distintos (`com.jh.caraudio` y `com.jh.carvi
   - No usa `getFrameAtTime`: abría un segundo decodificador de video mientras sonaba el video y en el radio trababa la reproducción.
 - **Tiempo del video con el reproductor del radio** (solo los archivos que ExoPlayer no pudo abrir): el radio puede no dar la duración ni la posición (devuelve 0 o -1).
   - Duración: si el reproductor no la da, se usa la del archivo (`MediaMetadataRetriever`, `MediaExtractor` y la tabla del MP4 fragmentado).
-  - Posición: si sigue en 0 durante 3 s mientras llegan cuadros nuevos, manda un reloj propio que se detiene en pausa y se mueve con cada salto.
+  - Posición: si sigue en 0 durante 3 s mientras llegan cuadros nuevos (o no hay imagen y el radio dice que reproduce), manda un reloj propio que se detiene en pausa y se mueve con cada salto.
   - Si a los 2 s de un salto la posición no quedó cerca, el monitor dice "⚠ El radio no saltó a 34:00 (sigue en 1:20)".
   - El monitor también avisa "ⓘ El reproductor no sabe cuánto dura el video…" o "ⓘ El radio no da la posición…".
 - **Barra que no puede saltar:** si el archivo no trae índice dice "⚠ Este video no deja saltar: el archivo no trae índice"; si no se sabe la duración, "⚠ No se puede saltar: no se sabe cuánto dura este video". En los dos casos la barra vuelve adonde va el video.

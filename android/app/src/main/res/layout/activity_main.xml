@@ -777,11 +777,18 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <!-- Sin video: pantalla con el triángulo de play -->
+                        <TextureView
+                            android:id="@+id/videoTexture"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                        <!-- Tapa el video (encima, para que siga recibiendo cuadros): negro mientras abre,
+                             con el triángulo de play si no hay imagen que mostrar -->
                         <LinearLayout
                             android:id="@+id/layoutAlbumPlaceholder"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="#000000"
                             android:orientation="vertical"
                             android:gravity="center">
 
@@ -791,11 +798,6 @@
                                 android:layout_height="68dp"
                                 android:src="@drawable/ic_video_placeholder" />
                         </LinearLayout>
-
-                        <TextureView
-                            android:id="@+id/videoTexture"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
 
                         <!-- Carátula de JH MUSIC: en el video no se muestra (su color sigue pintando el fondo) -->
                         <ImageView

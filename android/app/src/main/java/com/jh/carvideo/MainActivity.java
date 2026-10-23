@@ -2856,10 +2856,18 @@ public class MainActivity extends Activity {
             videoPlayer.start();
             clockRun(true);
             isPlaying = true;
+            videoPreparedAt = SystemClock.uptimeMillis();
             onTrackStarted(openingTrack);
             // ExoPlayer no pudo con este archivo y lo abrió el reproductor del radio: que se vea por qué
             String reason = videoPlayer.getRadioReason();
             if (reason != null) showTimeNote("ⓘ Lo abre el reproductor del radio (ExoPlayer: " + reason + ")");
+            // Suena, pero el radio no puede mostrar su video: el dibujo de "sin video" en vez de negro
+            String videoProblem = videoPlayer.getVideoProblem();
+            if (videoProblem != null) {
+                videoNoPicture = true;
+                updateVideoCover();
+                showTimeNote("ⓘ El radio no puede mostrar " + videoProblem + ": solo se escucha el audio");
+            }
         }
 
         @Override
@@ -2921,6 +2929,11 @@ public class MainActivity extends Activity {
     private void showOpeningTrack(Track track) {
         handler.removeCallbacks(ambientCaptureRunnable);
         handler.removeCallbacks(seekCheckRunnable); // el salto que se revisaba era del video anterior
+        // Tapado (negro) hasta que llegue su primer cuadro
+        videoOpenedAt = SystemClock.uptimeMillis();
+        videoFrameSeen = false;
+        videoNoPicture = false;
+        updateVideoCover();
         resetStallWatch();
         resetPlaybackClock(track);
         updateNowPlayingInfo(track);
@@ -2950,6 +2963,8 @@ public class MainActivity extends Activity {
             videoPlayer.release();
             videoPlayer = null;
         }
+        videoNoPicture = true;
+        updateVideoCover();
         // Primero el motivo: si no cabe, se corta el final (los códigos)
         playerErrorText = (wasOpening ? "⚠ No se pudo abrir: " : "⚠ El reproductor falló: ") + code;
         playerErrorUntil = SystemClock.uptimeMillis() + PLAYER_ERROR_HOLD_MS;
@@ -4161,6 +4176,12 @@ public class MainActivity extends Activity {
             public void run() {
                 if (playerReady() && isPlaying && !isUserSeeking) {
                     try {
+                        // Suena hace rato y no llegó ningún cuadro: el radio no puede mostrar este video
+                        if (!videoFrameSeen && !videoNoPicture
+                                && SystemClock.uptimeMillis() - videoPreparedAt > NO_PICTURE_AFTER_MS) {
+                            videoNoPicture = true;
+                            updateVideoCover();
+                        }
                         checkPlayerPosition(rawPlayerPosition());
                         int current = playbackPositionMs();
                         int total = playbackDurationMs();
@@ -4563,6 +4584,15 @@ public class MainActivity extends Activity {
     private ImageButton btnFsPlay;
     private boolean playerPrepared = false; // el archivo actual abrió bien (se le pueden pedir tiempos y saltos)
     private Track openingTrack;             // el que se está abriendo (o el último que abrió)
+    // El video se tapa hasta que llega un cuadro del archivo actual: si no, quedaba a la vista el último
+    // cuadro del anterior (en el auto, un .avi que el radio no podía mostrar se veía "congelado")
+    private static final long NO_PICTURE_AFTER_MS = 2500; // sonando sin ningún cuadro: no hay imagen
+    private static final long STALE_FRAME_MS = 200;       // los cuadros que llegan justo al abrir son del anterior
+    private View layoutVideoCover, ivNoVideo, layoutFsCover, ivFsNoVideo;
+    private boolean videoFrameSeen = false;  // llegó un cuadro del video actual
+    private boolean videoNoPicture = true;   // no hay imagen que mostrar (al empezar, ningún video)
+    private long videoOpenedAt;
+    private long videoPreparedAt;
     private boolean isVideoFs = false;
     private boolean isFsSeeking = false;
     private final Runnable hideFsControlsRunnable = () -> setFsControlsVisible(false);
@@ -4664,16 +4694,24 @@ public class MainActivity extends Activity {
             videoTexture.setSurfaceTextureListener(new VideoSurfaceListener(false));
             videoTexture.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> fitVideo(videoTexture));
         }
+        layoutVideoCover = findViewById(R.id.layoutAlbumPlaceholder);
+        ivNoVideo = findViewById(R.id.ivVinylDisc);
 
         // La pantalla completa va encima de todo, menos la tira de volumen de la izquierda
         FrameLayout content = findViewById(android.R.id.content);
-        if (content == null) return;
+        if (content == null) {
+            updateVideoCover();
+            return;
+        }
         layoutVideoFs = getLayoutInflater().inflate(R.layout.layout_video_fullscreen, content, false);
         content.addView(layoutVideoFs);
         layoutVideoFs.setOnTouchListener(videoTapListener);
         videoTextureFs = layoutVideoFs.findViewById(R.id.videoTextureFs);
         videoTextureFs.setSurfaceTextureListener(new VideoSurfaceListener(true));
         videoTextureFs.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> fitVideo(videoTextureFs));
+        layoutFsCover = layoutVideoFs.findViewById(R.id.layoutFsPlaceholder);
+        ivFsNoVideo = layoutVideoFs.findViewById(R.id.ivFsNoVideo);
+        updateVideoCover();
         layoutFsControls = layoutVideoFs.findViewById(R.id.layoutFsControls);
         tvFsTitle = layoutVideoFs.findViewById(R.id.tvFsTitle);
         tvFsTime = layoutVideoFs.findViewById(R.id.tvFsTime);
@@ -4764,8 +4802,26 @@ public class MainActivity extends Activity {
 
         @Override
         public void onSurfaceTextureUpdated(@NonNull SurfaceTexture st) {
-            lastFrameAt = SystemClock.uptimeMillis();
+            long now = SystemClock.uptimeMillis();
+            if (now - videoOpenedAt < STALE_FRAME_MS) return; // del video anterior
+            lastFrameAt = now;
+            if (!videoFrameSeen) {
+                // Primer cuadro del video actual: se destapa
+                videoFrameSeen = true;
+                videoNoPicture = false;
+                updateVideoCover();
+            }
         }
+    }
+
+    /** Negro mientras no llega un cuadro del video actual; con el dibujo de "sin video" si no hay imagen. */
+    private void updateVideoCover() {
+        int cover = !videoFrameSeen || videoNoPicture ? View.VISIBLE : View.GONE;
+        int icon = videoNoPicture ? View.VISIBLE : View.INVISIBLE;
+        if (layoutVideoCover != null) layoutVideoCover.setVisibility(cover);
+        if (ivNoVideo != null) ivNoVideo.setVisibility(icon);
+        if (layoutFsCover != null) layoutFsCover.setVisibility(cover);
+        if (ivFsNoVideo != null) ivFsNoVideo.setVisibility(icon);
     }
 
     /** Pasa el video a la superficie que corresponde (pantalla completa o reproductor). */
@@ -4795,11 +4851,10 @@ public class MainActivity extends Activity {
         fitVideo(videoTexture);
         fitVideo(videoTextureFs);
         // Sin imagen (archivo solo de audio): se ve el dibujo de "sin video" y no el último cuadro
-        boolean hasPicture = width > 0 && height > 0;
-        View placeholder = findViewById(R.id.layoutAlbumPlaceholder);
-        if (placeholder != null) placeholder.setVisibility(hasPicture ? View.GONE : View.VISIBLE);
-        if (videoTexture != null) videoTexture.setAlpha(hasPicture ? 1f : 0f);
-        if (videoTextureFs != null) videoTextureFs.setAlpha(hasPicture ? 1f : 0f);
+        if (width <= 0 || height <= 0) {
+            videoNoPicture = true;
+            updateVideoCover();
+        }
     }
 
     /** Video entero dentro del cuadro sin deformarlo (franjas negras si no es de la misma forma). */
@@ -4836,7 +4891,8 @@ public class MainActivity extends Activity {
         }
         Bitmap frame = null;
         TextureView view = isVideoFs && videoTextureFs != null ? videoTextureFs : videoTexture;
-        if (videoWidth > 0 && videoHeight > 0 && view != null && view.isAvailable()) {
+        // Solo un cuadro de este video (si no hay imagen, en pantalla queda el del anterior)
+        if (videoFrameSeen && !videoNoPicture && view != null && view.isAvailable()) {
             try {
                 frame = view.getBitmap(64, 36);
             } catch (Exception ignored) {}
@@ -4955,8 +5011,9 @@ public class MainActivity extends Activity {
             rawZeroSince = now;
             return;
         }
-        boolean framesFlowing = lastFrameAt > 0 && now - lastFrameAt < 1000;
-        if (framesFlowing && now - rawZeroSince >= 3000) {
+        // Llegan cuadros nuevos; o no hay imagen (solo suena) y el radio dice que reproduce
+        boolean advancing = videoNoPicture || (lastFrameAt > 0 && now - lastFrameAt < 1000);
+        if (advancing && now - rawZeroSince >= 3000) {
             positionFromClock = true;
             showTimeNote("ⓘ El radio no da la posición del video: uso un reloj propio");
         }
@@ -5060,7 +5117,7 @@ public class MainActivity extends Activity {
     /** Reproduciendo: si la posición no cambia en 2,5 s el video está trabado (USB lento o decodificador). */
     private void watchStall(int positionMs) {
         long now = SystemClock.uptimeMillis();
-        if (videoWidth > 0 && videoHeight > 0 && lastFrameAt > 0) {
+        if (videoFrameSeen && !videoNoPicture && lastFrameAt > 0) {
             stallMs = now - lastFrameAt;
             return;
         }
