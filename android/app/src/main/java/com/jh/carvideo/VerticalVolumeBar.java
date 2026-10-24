@@ -94,8 +94,8 @@ public class VerticalVolumeBar extends View {
         int h = getHeight();
         if (w <= 0 || h <= 0) return;
 
-        float trackW = dpToPx(12f);
-        float thumbRadius = dpToPx(10f);
+        float trackW = dpToPx(16f);
+        float thumbRadius = dpToPx(13f);
         float padY = thumbRadius + dpToPx(4f);
         float usableH = h - (padY * 2f);
 

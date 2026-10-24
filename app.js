@@ -106,6 +106,9 @@ function initApp() {
 
   let masterTracks = [...sampleTracks];
   let currentPlaylist = [...sampleTracks];
+  // La canción cargada en el reproductor. Abrir una carpeta cambia currentPlaylist, pero no lo que suena:
+  // el árbol usa esta para saber cuál es la carpeta que suena (ecualizador)
+  let loadedTrack = null;
   let currentTrackIndex = 0;
   let isPlaying = false;
   let isShuffle = false;
@@ -196,8 +199,9 @@ function initApp() {
   const pauseIcon = document.getElementById('pauseIcon');
   const btnPrev = document.getElementById('btnPrev');
   const btnNext = document.getElementById('btnNext');
-  const btnShuffle = document.getElementById('btnShuffle');
-  const btnRepeat = document.getElementById('btnRepeat');
+  const playerMenuLayer = document.getElementById('playerMenuLayer');
+  const menuShuffle = document.getElementById('menuShuffle');
+  const menuRepeat = document.getElementById('menuRepeat');
 
   // Modo Reproductor Expandido / Buscador de Archivos
   const dashboardGrid = document.querySelector('.dashboard-grid');
@@ -653,6 +657,9 @@ function initApp() {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     clockDisplay.textContent = `${hours}:${minutes}`;
+    // Reloj de la tira de volumen (la barra de arriba está oculta): horas arriba, minutos abajo
+    document.getElementById('stripClockH').textContent = hours;
+    document.getElementById('stripClockM').textContent = minutes;
   }
   setInterval(updateClock, 1000);
   updateClock();
@@ -665,6 +672,7 @@ function initApp() {
     currentTrackIndex = index;
     const track = currentPlaylist[currentTrackIndex];
     if (!track) return;
+    loadedTrack = track;
 
     // Actualizar UI
     trackTitle.textContent = track.title;
@@ -890,6 +898,8 @@ function initApp() {
 
   function updatePlayStateUI() {
     updateMixLiveDot();
+    // El ecualizador del botón de la carpeta que suena se mueve solo mientras suena
+    document.body.classList.toggle('is-playing', isPlaying);
     const pillStatusText = document.getElementById('pillStatusText');
     if (isPlaying) {
       playIcon.classList.add('hidden');
@@ -1064,7 +1074,40 @@ function initApp() {
   const volMeterFill = document.getElementById('volMeterFill');
   const volMeterThumb = document.getElementById('volMeterThumb');
 
-  function setVolume(val) {
+  const blindVolumeHud = document.getElementById('blindVolumeHud');
+  const blindHudFill = document.getElementById('blindHudFill');
+  const blindHudPercent = document.getElementById('blindHudPercent');
+  const blindHudIcon = document.getElementById('blindHudIcon');
+  let hudTimeout = null;
+
+  function updateVolumeHud(vol, show = true) {
+    if (!blindVolumeHud) return;
+    if (blindHudFill) blindHudFill.style.height = `${vol}%`;
+    if (blindHudPercent) blindHudPercent.textContent = `${vol}%`;
+
+    if (blindHudIcon) {
+      if (vol === 0 || isMuted) {
+        blindHudIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+        blindHudIcon.style.color = '#ef4444';
+      } else if (vol < 35) {
+        blindHudIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        blindHudIcon.style.color = '#38bdf8';
+      } else {
+        blindHudIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        blindHudIcon.style.color = '#38bdf8';
+      }
+    }
+
+    if (show) {
+      blindVolumeHud.classList.add('is-visible');
+      if (hudTimeout) clearTimeout(hudTimeout);
+      hudTimeout = setTimeout(() => {
+        blindVolumeHud.classList.remove('is-visible');
+      }, 1100);
+    }
+  }
+
+  function setVolume(val, showHud = false) {
     currentVolume = Math.max(0, Math.min(100, Math.round(val)));
     volPercent.textContent = `${currentVolume}%`;
     if (volMeterFill) volMeterFill.style.height = `${currentVolume}%`;
@@ -1079,6 +1122,10 @@ function initApp() {
 
     audio.volume = isMuted ? 0 : (currentVolume / 100);
 
+    if (showHud) {
+      updateVolumeHud(currentVolume, true);
+    }
+
     // Integración directa con el sistema de audio de la pantalla del auto
     if (window.AndroidBridge && window.AndroidBridge.setSystemVolume) {
       try { window.AndroidBridge.setSystemVolume(currentVolume); } catch(e) {}
@@ -1088,7 +1135,7 @@ function initApp() {
   function toggleMute() {
     if (isMuted) {
       isMuted = false;
-      setVolume(previousVolume > 0 ? previousVolume : 50);
+      setVolume(previousVolume > 0 ? previousVolume : 50, true);
     } else {
       previousVolume = currentVolume;
       isMuted = true;
@@ -1096,6 +1143,7 @@ function initApp() {
       volPercent.textContent = "0%";
       if (volMeterFill) volMeterFill.style.height = "0%";
       if (volMeterThumb) volMeterThumb.style.bottom = "0%";
+      updateVolumeHud(0, true);
     }
     updateMuteUI();
 
@@ -1127,7 +1175,7 @@ function initApp() {
       const offsetY = clientY - rect.top;
       const ratio = 1 - (offsetY / rect.height);
       const val = Math.max(0, Math.min(100, Math.round(ratio * 100)));
-      setVolume(val);
+      setVolume(val, true);
     }
 
     volMeterWrap.addEventListener('pointerdown', (e) => {
@@ -1150,9 +1198,102 @@ function initApp() {
     });
   }
 
-  btnVolDown.addEventListener('click', () => setVolume(currentVolume - 5));
-  btnVolUp.addEventListener('click', () => setVolume(currentVolume + 5));
+  btnVolDown.addEventListener('click', () => setVolume(currentVolume - 10, true));
+  btnVolUp.addEventListener('click', () => setVolume(currentVolume + 10, true));
   btnMute.addEventListener('click', toggleMute);
+
+  // =================== GESTO CIEGO VERTICAL: CONTROL DE VOLUMEN EN PANTALLA ===================
+  let isBlindVolDragging = false;
+  let blindVolStartX = 0;
+  let blindVolStartY = 0;
+  let blindVolStartVal = 0;
+  let blindVolPointerId = null;
+  let hasPassedDeadzone = false;
+  let suppressClickAfterDrag = false;
+
+  function canStartBlindVolumeGesture(target, clientX, clientY) {
+    if (!target) return false;
+    // Solo excluir si se está escribiendo activamente en la caja de búsqueda
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      return false;
+    }
+    // No interferir si se arrastra horizontalmente la barra de avance de video (seekbar)
+    if (target.closest('#progressBarContainer')) {
+      return false;
+    }
+    // No en el explorador (igual que la app): ahí deslizar arriba / abajo es el scroll de la lista
+    if (target.closest('.explorer-panel')) {
+      return false;
+    }
+    // Excluir la franja libre de jalar/ocultar el explorador (reservada para swipe horizontal del panel)
+    if (typeof isInsideExplorerDragZone === 'function' && isInsideExplorerDragZone(clientX, clientY)) {
+      return false;
+    }
+    // Toda la pantalla restante responde al gesto ciego
+    return true;
+  }
+
+  window.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (!canStartBlindVolumeGesture(e.target, e.clientX, e.clientY)) return;
+
+    isBlindVolDragging = true;
+    hasPassedDeadzone = false;
+    blindVolStartX = e.clientX;
+    blindVolStartY = e.clientY;
+    blindVolStartVal = currentVolume;
+    blindVolPointerId = e.pointerId;
+  }, { passive: true });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!isBlindVolDragging || e.pointerId !== blindVolPointerId) return;
+
+    const dx = e.clientX - blindVolStartX;
+    const dy = blindVolStartY - e.clientY; // Hacia arriba = subir (+), hacia abajo = bajar (-)
+
+    if (!hasPassedDeadzone) {
+      // Si el movimiento es horizontal (ej. jalar panel o deslizar): CANCELAR volumen de inmediato
+      if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy)) {
+        isBlindVolDragging = false;
+        return;
+      }
+      // Solo activar si el gesto es netamente VERTICAL (bloqueo direccional)
+      if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+        hasPassedDeadzone = true;
+        suppressClickAfterDrag = true;
+      } else {
+        return;
+      }
+    }
+
+    // 240px de recorrido vertical = 100% de volumen (progresión suave y controlable)
+    const deltaPercent = (dy / 240) * 100;
+    const targetVol = Math.max(0, Math.min(100, Math.round(blindVolStartVal + deltaPercent)));
+    setVolume(targetVol, true);
+  }, { passive: true });
+
+  const endBlindVolDrag = (e) => {
+    if (isBlindVolDragging && (!e || e.pointerId === blindVolPointerId)) {
+      isBlindVolDragging = false;
+      hasPassedDeadzone = false;
+      blindVolPointerId = null;
+      if (suppressClickAfterDrag) {
+        setTimeout(() => { suppressClickAfterDrag = false; }, 120);
+      }
+    }
+  };
+
+  window.addEventListener('pointerup', endBlindVolDrag, { passive: true });
+  window.addEventListener('pointercancel', endBlindVolDrag, { passive: true });
+
+  // Evitar clicks accidentales tras soltar el arrastre de volumen
+  window.addEventListener('click', (e) => {
+    if (suppressClickAfterDrag) {
+      e.stopPropagation();
+      e.preventDefault();
+      suppressClickAfterDrag = false;
+    }
+  }, true);
 
   // =================== BOTONES DE NAVEGACIÓN Y CONTROL ===================
   btnPlayPause.addEventListener('click', togglePlayPause);
@@ -1274,6 +1415,40 @@ function initApp() {
 
   btnNext.addEventListener('click', handleNextTouch);
   btnPrev.addEventListener('click', handlePrevTouch);
+
+  // =================== ZONAS DE ANTERIOR / PLAY / SIGUIENTE PARA EL AUTO (igual que la app) ===================
+  // Toda la franja de abajo del reproductor (debajo de los tiempos, hasta el borde) responde, en tres
+  // columnas: el play con 24px de más a cada lado, a su izquierda anterior y a su derecha siguiente.
+  // Solo se ilumina el botón. En pantalla completa no se usa: tiene sus propios botones
+  const PLAY_ZONE_EXTRA = 24;
+  const playerPanel = document.getElementById('playerPanel');
+  const navZoneTop = document.querySelector('.progress-section');
+
+  function navZoneAt(x, y) {
+    if (frameWrapper.classList.contains('is-video-fs')) return null;
+    const panel = playerPanel.getBoundingClientRect();
+    const top = navZoneTop.getBoundingClientRect().bottom;
+    const play = btnPlayPause.getBoundingClientRect();
+    if (x < panel.left || x > panel.right || y < top || y > panel.bottom) return null;
+    if (x < play.left - PLAY_ZONE_EXTRA) return btnPrev;
+    if (x > play.right + PLAY_ZONE_EXTRA) return btnNext;
+    return btnPlayPause;
+  }
+
+  playerPanel.addEventListener('pointerdown', (e) => {
+    const target = navZoneAt(e.clientX, e.clientY);
+    if (!target) return;
+    target.classList.add('pressed');
+    setTimeout(() => target.classList.remove('pressed'), 180);
+  }, true);
+
+  // Un clic fuera de los botones, dentro de la franja, va al botón de su columna
+  playerPanel.addEventListener('click', (e) => {
+    const target = navZoneAt(e.clientX, e.clientY);
+    if (!target || target.contains(e.target)) return;
+    e.stopPropagation();
+    target.click();
+  }, true);
 
   // Clicks directos en las tarjetas flotantes
   if (adjPrevCard) {
@@ -1403,14 +1578,99 @@ function initApp() {
     refreshAllMarquees();
   });
 
-  btnShuffle.addEventListener('click', () => {
+  // =================== MENÚ ☰: ALEATORIO Y REPETIR VIDEO (igual que la app) ===================
+  // Se abre encima del reproductor o, en pantalla completa, encima del video. Se cierra solo a los 5 s
+  // sin tocarlo (cada toque en una opción vuelve a contar), tocando fuera o en ✕
+  const PLAYER_MENU_AUTO_CLOSE_MS = 5000;
+  let playerMenuTimer = null;
+
+  function setPlayerMenuOpen(open) {
+    clearTimeout(playerMenuTimer);
+    if (open) {
+      const inFs = frameWrapper.classList.contains('is-video-fs');
+      const over = (inFs ? albumContainer : playerPanel).getBoundingClientRect();
+      const base = frameWrapper.getBoundingClientRect();
+      Object.assign(playerMenuLayer.style, {
+        left: (over.left - base.left) + 'px',
+        top: (over.top - base.top) + 'px',
+        width: over.width + 'px',
+        height: over.height + 'px'
+      });
+      refreshPlayerMenu();
+      clearTimeout(fsHideTimer); // en pantalla completa los controles no se ocultan con el menú abierto
+      playerMenuTimer = setTimeout(() => setPlayerMenuOpen(false), PLAYER_MENU_AUTO_CLOSE_MS);
+    }
+    const wasOpen = !playerMenuLayer.classList.contains('hidden');
+    playerMenuLayer.classList.toggle('hidden', !open);
+    if (!open && wasOpen && frameWrapper.classList.contains('is-video-fs')) showFsOverlay(true);
+  }
+
+  function refreshPlayerMenu() {
+    menuShuffle.classList.toggle('is-on', isShuffle);
+    menuShuffle.querySelector('.player-menu-state').textContent = isShuffle ? 'ON' : 'OFF';
+    menuRepeat.classList.toggle('is-on', isRepeat);
+    menuRepeat.querySelector('.player-menu-state').textContent = isRepeat ? 'ON' : 'OFF';
+    // Indicadores sobre el video y debajo del título en pantalla completa
+    document.querySelectorAll('[data-mode-icon]').forEach(icon => {
+      icon.classList.toggle('hidden', !(icon.dataset.modeIcon === 'repeat' ? isRepeat : isShuffle));
+    });
+  }
+
+  // Aleatorio y repetir recuerdan cómo quedaron (en la app, en sus preferencias)
+  function saveModes() {
+    try {
+      localStorage.setItem('jhvideo_shuffle', isShuffle ? '1' : '0');
+      localStorage.setItem('jhvideo_repeat', isRepeat ? '1' : '0');
+    } catch (err) {}
+  }
+  try {
+    isShuffle = localStorage.getItem('jhvideo_shuffle') === '1';
+    isRepeat = localStorage.getItem('jhvideo_repeat') === '1';
+  } catch (err) {}
+  refreshPlayerMenu();
+
+  document.getElementById('btnVideoMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setPlayerMenuOpen(true);
+  });
+  document.getElementById('playerMenuBackdrop').addEventListener('click', () => setPlayerMenuOpen(false));
+  document.getElementById('playerMenuClose').addEventListener('click', () => setPlayerMenuOpen(false));
+
+  menuShuffle.addEventListener('click', () => {
     isShuffle = !isShuffle;
-    btnShuffle.classList.toggle('active', isShuffle);
+    saveModes();
+    setPlayerMenuOpen(true);
   });
 
-  btnRepeat.addEventListener('click', () => {
+  menuRepeat.addEventListener('click', () => {
     isRepeat = !isRepeat;
-    btnRepeat.classList.toggle('active', isRepeat);
+    saveModes();
+    setPlayerMenuOpen(true);
+  });
+
+  // Re-escanear USB (antes en la barra de arriba): cierra el menú y hace lo mismo que aquel botón
+  document.getElementById('menuRescan').addEventListener('click', () => {
+    setPlayerMenuOpen(false);
+    document.getElementById('btnRescanUsb').click();
+  });
+  document.getElementById('menuVersion').textContent =
+    'JH VIDEO ' + document.getElementById('appVersionBadge').textContent.replace('JH VIDEO ', '');
+
+  // =================== SOLO AUDIO (foco) ===================
+  // De noche la imagen puede encandilar, o no se permite video a la vista del conductor: tapa la imagen
+  // en negro y el audio sigue, con los controles a mano. Sigue así al cambiar de video
+  let audioOnly = false;
+  const audioOnlyCover = document.getElementById('audioOnlyCover');
+
+  function setAudioOnly(on) {
+    audioOnly = on;
+    audioOnlyCover.classList.toggle('hidden', !on);
+    document.querySelectorAll('#btnAudioOnly, #fsAudioOnly').forEach(btn => btn.classList.toggle('is-on', on));
+  }
+
+  document.getElementById('btnAudioOnly').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setAudioOnly(!audioOnly);
   });
 
   // =================== UTILIDADES DE BÚSQUEDA Y ALMACENAMIENTO ===================
@@ -1780,7 +2040,7 @@ function initApp() {
   // =================== PESTAÑAS Y RENDERIZADO ===================
   // Función para revelar y desplegar automáticamente la carpeta de la canción que está sonando
   function revealPlayingFolderInTree() {
-    const currentTrack = currentPlaylist[currentTrackIndex];
+    const currentTrack = loadedTrack || currentPlaylist[currentTrackIndex];
     if (!currentTrack) return;
 
     const targetFolder = currentTrack.folder || currentFolder;
@@ -2216,13 +2476,13 @@ function initApp() {
       function renderTreeNode(node, level = 0) {
         const hasChildren = node.children && node.children.length > 0;
         const isExpanded = expandedTreeNodes.has(node.id);
-        const currentTrack = currentPlaylist[currentTrackIndex];
+        const currentTrack = loadedTrack || currentPlaylist[currentTrackIndex];
         const isPlayingFolder = currentTrack && (
           (node.name === currentTrack.folder) ||
           (currentTrack.path && node.path && !node.isUsbRoot && (currentTrack.path.replace(/\/+$/, '') === node.path.replace(/\/+$/, '')))
         );
         const isActive = isPlayingFolder || (currentFolder === node.name);
-        const indentPx = 10 + (level * 20);
+        const indentPx = 4 + (level * 14); // poca sangría: el nombre necesita el ancho en 1024x600
 
         // Si la carpeta tiene 0 músicas directas (ej: es solo contenedor de subcarpetas o raíz),
         // se lista normalmente pero NO debe salir el botón de play.
@@ -2233,8 +2493,10 @@ function initApp() {
         const hasDirectMusic = directTracksCount > 0;
 
         const nodeEl = document.createElement('div');
-        nodeEl.className = `tree-node-item ${isPlayingFolder ? 'is-playing-folder' : (isActive ? 'is-active-folder' : '')}`;
+        // La que suena lleva un ecualizador en su botón ▶; la abierta (si no suena), borde fino
+        nodeEl.className = `tree-node-item ${isPlayingFolder ? 'is-playing-folder' : (isActive ? 'is-active-folder' : '')} ${fullTitleNodeId === node.id ? 'show-full-title' : ''}`;
         nodeEl.style.paddingLeft = `${indentPx}px`;
+        nodeEl.dataset.nodeId = node.id;
 
         const isUsbRoot = !!node.isUsbRoot;
 
@@ -2242,21 +2504,18 @@ function initApp() {
         if (hasDirectMusic) {
           playBtnHtml = `
             <button class="btn-folder-addmix" title="Agregar ${escapeHtml(node.name)} a Mi Lista">${MIX_PLUS_SVG}</button>
-            <button class="btn-folder-play" title="Reproducir música de ${escapeHtml(node.name)}">
-              <span class="track-count-num">${directTracksCount}</span>
-              <div class="play-circle">
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              </div>
+            <button class="btn-folder-play is-square" title="Reproducir ${escapeHtml(node.name)}">
+              ${isPlayingFolder
+                ? '<span class="folder-eq"><i></i><i></i><i></i></span>'
+                : '<div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>'}
             </button>
           `;
         }
 
-        // Límite prudente para evitar scrolls kilométricos si hay carpetas con nombres excesivos
-        const MAX_FOLDER_CHARS = 26;
+        // Nombre en 1 renglón (el CSS lo corta con "…"; tocado, completo en 2 renglones). Sin la línea de
+        // cantidad: si tiene canciones lo dicen + y ▶; si solo tiene subcarpetas, la flecha
         const rawFolderName = node.name || '';
-        const displayFolderName = rawFolderName.length > MAX_FOLDER_CHARS 
-          ? rawFolderName.slice(0, MAX_FOLDER_CHARS) + '…' 
-          : rawFolderName;
+        const folderGlyph = `<svg class="tree-folder-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
 
         nodeEl.innerHTML = `
           <div class="tree-node-left">
@@ -2269,22 +2528,18 @@ function initApp() {
                 <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(148,163,184,0.35);"></span>
               `}
             </div>
-            <div class="tree-node-icon ${isUsbRoot ? 'is-usb-root' : ''}">
-              ${isUsbRoot ? `
+            ${isUsbRoot ? `
+            <div class="tree-node-icon is-usb-root">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
                   <rect x="6" y="2" width="12" height="20" rx="2"></rect>
                   <line x1="9" y1="6" x2="9" y2="8"></line>
                   <line x1="15" y1="6" x2="15" y2="8"></line>
                   <line x1="9" y1="18" x2="15" y2="18"></line>
                 </svg>
-              ` : `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
-              `}
-            </div>
+            </div>` : ''}
+            ${isUsbRoot ? '' : `<span class="tree-fixed-glyph">${folderGlyph}</span>`}
             <div class="tree-node-info" title="${escapeHtml(rawFolderName)}">
-              <span class="tree-node-title">${escapeHtml(displayFolderName)}</span>
+              <span class="tree-node-title">${escapeHtml(rawFolderName)}</span>
             </div>
           </div>
           ${playBtnHtml}
@@ -2311,6 +2566,11 @@ function initApp() {
         // Click en la fila: expandir / contraer y preparar pistas
         nodeEl.addEventListener('click', () => {
           searchInput.blur();
+          // Dos toques seguidos = lo mismo que [N ▶] (el segundo toque deja la carpeta abierta o cerrada como estaba)
+          const now = Date.now();
+          const doubleTap = lastTreeTap.id === node.id && now - lastTreeTap.at <= FOLDER_DOUBLE_TAP_MS;
+          lastTreeTap = doubleTap ? { id: null, at: 0 } : { id: node.id, at: now };
+          fullTitleNodeId = node.id;
           if (hasChildren) {
             if (expandedTreeNodes.has(node.id)) {
               expandedTreeNodes.delete(node.id);
@@ -2338,6 +2598,13 @@ function initApp() {
           }
 
           renderList();
+          // La fila se enciende un instante: se nota que el toque entró
+          const tappedEl = trackListContainer.querySelector(`[data-node-id="${CSS.escape(String(node.id))}"]`);
+          if (tappedEl) {
+            tappedEl.classList.add('is-tapped');
+            setTimeout(() => tappedEl.classList.remove('is-tapped'), 250);
+          }
+          if (doubleTap && hasDirectMusic) playFolderTree(node);
         });
 
         trackListContainer.appendChild(nodeEl);
@@ -3035,6 +3302,12 @@ function initApp() {
     return folderTracks;
   }
 
+  // Dos toques seguidos en la fila de una carpeta = botón [N ▶] (igual que la app)
+  const FOLDER_DOUBLE_TAP_MS = 350;
+  let lastTreeTap = { id: null, at: 0 };
+  // Carpeta tocada por última vez: su nombre se muestra completo, en hasta 2 renglones
+  let fullTitleNodeId = null;
+
   function playFolderTree(node) {
     const allPool = masterTracks.length > 0 ? masterTracks : sampleTracks;
     const folderTracks = tracksOfFolderNode(node);
@@ -3259,10 +3532,10 @@ function initApp() {
       prevTrack();
     } else if (e.code === 'ArrowUp') {
       e.preventDefault();
-      setVolume(currentVolume + 5);
+      setVolume(currentVolume + 10);
     } else if (e.code === 'ArrowDown') {
       e.preventDefault();
-      setVolume(currentVolume - 5);
+      setVolume(currentVolume - 10);
     } else if (e.key === 'm' || e.key === 'M') {
       toggleMute();
     }
@@ -3522,7 +3795,7 @@ function initApp() {
   let videoTapTimer = null;
 
   function onVideoFrameTap(e) {
-    if (e.target.closest('.fs-btn') || e.target.closest('.fs-progress')) return;
+    if (e.target.closest('.fs-btn') || e.target.closest('.fs-progress') || e.target.closest('.video-float-btn')) return;
     const inFs = frameWrapper.classList.contains('is-video-fs');
     if (videoTapTimer) {
       // segundo toque: doble toque
@@ -3547,10 +3820,32 @@ function initApp() {
       showFsOverlay(true);
     });
   }
-  bindFs('fsExit', () => setVideoFullscreen(false));
+  bindFs('fsExit', () => {
+    setPlayerMenuOpen(false);
+    setVideoFullscreen(false);
+  });
+  bindFs('fsAudioOnly', () => setAudioOnly(!audioOnly));
+  document.getElementById('fsMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setPlayerMenuOpen(true);
+  });
   bindFs('fsPlay', () => togglePlayPause());
-  bindFs('fsPrev', () => prevTrack());
-  bindFs('fsNext', () => nextTrack());
+  bindFs('fsPrev', () => {
+    const el = document.getElementById('fsPrev');
+    if (el) {
+      el.classList.add('pressed');
+      setTimeout(() => el.classList.remove('pressed'), 180);
+    }
+    handlePrevTouch();
+  });
+  bindFs('fsNext', () => {
+    const el = document.getElementById('fsNext');
+    if (el) {
+      el.classList.add('pressed');
+      setTimeout(() => el.classList.remove('pressed'), 180);
+    }
+    handleNextTouch();
+  });
   // Barra de tiempo de pantalla completa: se toca o se arrastra. Mientras se arrastra muestra adónde
   // vas; al soltar salta ahí, con la misma lógica que la barra del reproductor
   const fsProgressBar = document.getElementById('fsProgressBar');

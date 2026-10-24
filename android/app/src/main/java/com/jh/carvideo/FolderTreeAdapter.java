@@ -3,6 +3,9 @@ package com.jh.carvideo;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +32,20 @@ public class FolderTreeAdapter extends BaseAdapter {
     private List<TreeNode> visibleNodes;
     private OnTreeNodeClickListener listener;
     private Track currentPlayingTrack;
+    /** Si lo que suena está sonando (true) o en pausa: el ecualizador de su carpeta se mueve o queda quieto. */
+    private boolean playbackRunning;
     private String selectedFolder;
+
+    // Destello al tocar una fila (para saber que el toque entró, como en anterior / siguiente)
+    private static final int FLASH_MS = 250;
+    private TreeNode flashNode;
+    /** Carpeta tocada por última vez: su nombre se muestra completo, en hasta 2 renglones. */
+    private TreeNode fullTitleNode;
+    private final Handler flashHandler = new Handler(Looper.getMainLooper());
+    private final Runnable clearFlash = () -> {
+        flashNode = null;
+        notifyDataSetChanged();
+    };
 
     public FolderTreeAdapter(Context context, List<TreeNode> visibleNodes, OnTreeNodeClickListener listener) {
         this.context = context;
@@ -42,6 +58,12 @@ public class FolderTreeAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void setPlaybackRunning(boolean running) {
+        if (playbackRunning == running) return;
+        playbackRunning = running;
+        notifyDataSetChanged();
+    }
+
     public void setCurrentPlayingTrack(Track track) {
         this.currentPlayingTrack = track;
         notifyDataSetChanged();
@@ -50,6 +72,15 @@ public class FolderTreeAdapter extends BaseAdapter {
     public void setSelectedFolder(String folder) {
         this.selectedFolder = folder;
         notifyDataSetChanged();
+    }
+
+    /** La fila de esta carpeta se enciende en cian un instante. */
+    public void flash(TreeNode node) {
+        flashNode = node;
+        fullTitleNode = node;
+        flashHandler.removeCallbacks(clearFlash);
+        notifyDataSetChanged();
+        flashHandler.postDelayed(clearFlash, FLASH_MS);
     }
 
     @Override
@@ -70,6 +101,12 @@ public class FolderTreeAdapter extends BaseAdapter {
         return position;
     }
 
+    /** ¿Es la carpeta de la canción que suena? */
+    private boolean isPlayingFolder(TreeNode node) {
+        return currentPlayingTrack != null && !node.isUsbRoot() && node.getName() != null
+                && node.getName().equalsIgnoreCase(currentPlayingTrack.getFolder());
+    }
+
     private static class ViewHolder {
         LinearLayout layoutTreeItem;
         View viewIndent;
@@ -77,9 +114,10 @@ public class FolderTreeAdapter extends BaseAdapter {
         FrameLayout frameTreeIcon;
         ImageView ivTreeIcon;
         TextView tvTreeTitle;
-        LinearLayout btnFolderPlay;
+        View btnFolderPlay;
+        View frameFolderPlayCircle;
+        MiniEqualizerView eqFolderPlaying;
         View btnTreeAddMix;
-        TextView tvTreeDirectCount;
     }
 
     @Override
@@ -95,8 +133,9 @@ public class FolderTreeAdapter extends BaseAdapter {
             holder.ivTreeIcon = convertView.findViewById(R.id.ivTreeIcon);
             holder.tvTreeTitle = convertView.findViewById(R.id.tvTreeTitle);
             holder.btnFolderPlay = convertView.findViewById(R.id.btnFolderPlay);
+            holder.frameFolderPlayCircle = convertView.findViewById(R.id.frameFolderPlayCircle);
+            holder.eqFolderPlaying = convertView.findViewById(R.id.eqFolderPlaying);
             holder.btnTreeAddMix = convertView.findViewById(R.id.btnTreeAddMix);
-            holder.tvTreeDirectCount = convertView.findViewById(R.id.tvTreeDirectCount);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -106,8 +145,8 @@ public class FolderTreeAdapter extends BaseAdapter {
         if (node != null) {
             float density = context.getResources().getDisplayMetrics().density;
 
-            // Indentación según el nivel de profundidad
-            int indentPx = (int) ((8 + node.getLevel() * 20) * density);
+            // Indentación según el nivel de profundidad (poca, para que el nombre tenga lugar en 1024x600)
+            int indentPx = (int) ((2 + node.getLevel() * 12) * density);
             ViewGroup.LayoutParams lp = holder.viewIndent.getLayoutParams();
             if (lp != null) {
                 lp.width = indentPx;
@@ -127,25 +166,43 @@ public class FolderTreeAdapter extends BaseAdapter {
                 holder.ivTreeArrow.setVisibility(View.INVISIBLE);
             }
 
-            // Icono según sea Raíz de Pendrive o Carpeta
-            if (node.isUsbRoot()) {
+            // Icono fijo (no se desliza con el nombre): la raíz del pendrive en su cuadro verde de 44dp;
+            // las carpetas, solo el dibujo cian de 20dp, del alto del texto
+            boolean usbRoot = node.isUsbRoot();
+            ViewGroup.LayoutParams frameLp = holder.frameTreeIcon.getLayoutParams();
+            frameLp.width = frameLp.height = (int) ((usbRoot ? 44 : 20) * density);
+            holder.frameTreeIcon.setLayoutParams(frameLp);
+            ViewGroup.LayoutParams iconLp = holder.ivTreeIcon.getLayoutParams();
+            iconLp.width = iconLp.height = (int) ((usbRoot ? 26 : 20) * density);
+            holder.ivTreeIcon.setLayoutParams(iconLp);
+            if (usbRoot) {
                 holder.frameTreeIcon.setBackgroundResource(R.drawable.bg_tree_icon_usb);
                 holder.ivTreeIcon.setImageResource(R.drawable.ic_usb_trident);
                 holder.ivTreeIcon.setColorFilter(Color.parseColor("#10b981"), PorterDuff.Mode.SRC_IN);
             } else {
-                holder.frameTreeIcon.setBackgroundResource(R.drawable.bg_tree_icon_folder);
+                holder.frameTreeIcon.setBackground(null);
                 holder.ivTreeIcon.setImageResource(R.drawable.ic_tree_folder);
                 holder.ivTreeIcon.setColorFilter(Color.parseColor("#38bdf8"), PorterDuff.Mode.SRC_IN);
             }
-
-            // Título con auto-scroll horizontal si es largo
             holder.tvTreeTitle.setText(node.getName());
-            holder.tvTreeTitle.setSelected(true);
+            // Nombre en 1 renglón que se desliza de derecha a izquierda si no entra; la carpeta
+            // tocada por última vez lo muestra completo, en hasta 2 renglones
+            if (node == fullTitleNode) {
+                holder.tvTreeTitle.setSingleLine(false);
+                holder.tvTreeTitle.setMaxLines(2);
+                holder.tvTreeTitle.setEllipsize(TextUtils.TruncateAt.END);
+                holder.tvTreeTitle.setSelected(false);
+            } else {
+                holder.tvTreeTitle.setSingleLine(true);
+                holder.tvTreeTitle.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+                holder.tvTreeTitle.setSelected(true);
+            }
 
-            // Botón Reproducir [ N ▶ ] (Solo si tiene canciones directas > 0)
-            if (node.getDirectTrackCount() > 0) {
+            int count = node.getDirectTrackCount();
+
+            // Botones + y ▶ (solo si tiene videos directas)
+            if (count > 0) {
                 holder.btnFolderPlay.setVisibility(View.VISIBLE);
-                holder.tvTreeDirectCount.setText(String.valueOf(node.getDirectTrackCount()));
                 holder.btnFolderPlay.setOnClickListener(v -> {
                     if (listener != null) {
                         listener.onNodePlayClick(node, position);
@@ -164,19 +221,21 @@ public class FolderTreeAdapter extends BaseAdapter {
                 holder.btnTreeAddMix.setOnClickListener(null);
             }
 
-            // Resaltado de la carpeta que está sonando actualmente
-            boolean isPlayingFolder = false;
-            if (currentPlayingTrack != null && !node.isUsbRoot()) {
-                if (node.getName() != null && node.getName().equalsIgnoreCase(currentPlayingTrack.getFolder())) {
-                    isPlayingFolder = true;
-                }
-            }
+            boolean isPlayingFolder = isPlayingFolder(node);
+
+            // La carpeta que suena: su botón ▶ muestra un ecualizador (se mueve mientras suena, quieto en pausa)
+            holder.frameFolderPlayCircle.setVisibility(isPlayingFolder ? View.GONE : View.VISIBLE);
+            holder.eqFolderPlaying.setVisibility(isPlayingFolder ? View.VISIBLE : View.GONE);
+            holder.eqFolderPlaying.setAnimating(isPlayingFolder && playbackRunning);
             boolean isSelected = (selectedFolder != null && selectedFolder.equalsIgnoreCase(node.getName()));
 
-            if (isPlayingFolder) {
-                holder.layoutTreeItem.setBackgroundResource(R.drawable.bg_tree_node_playing);
-            } else if (isSelected) {
-                holder.layoutTreeItem.setBackgroundResource(R.drawable.bg_tree_node_playing);
+            // Fondo: la que suena no se pinta (lo dice el ecualizador de su botón); la tocada
+            // solo destella un instante; la abierta en la pestaña de canciones, si no es la que suena,
+            // lleva un borde cian fino
+            if (node == flashNode) {
+                holder.layoutTreeItem.setBackgroundResource(R.drawable.bg_tree_node_flash);
+            } else if (isSelected && !isPlayingFolder) {
+                holder.layoutTreeItem.setBackgroundResource(R.drawable.bg_tree_node_open);
             } else {
                 holder.layoutTreeItem.setBackgroundResource(R.drawable.bg_tree_node);
             }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/blindVolumeHud"
+    android:layout_width="140dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_blind_volume_hud"
+    android:elevation="30dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingTop="18dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="18dp"
+    android:visibility="gone">
+
+    <ImageView
+        android:id="@+id/ivBlindHudIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_vol_on"
+        android:tint="@color/accent_cyan" />
+
+    <FrameLayout
+        android:layout_width="22dp"
+        android:layout_height="130dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_hud_track">
+
+        <View
+            android:id="@+id/viewBlindHudFill"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_hud_fill" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvBlindHudPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="75%"
+        android:textColor="#f1f5f9"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+</LinearLayout>

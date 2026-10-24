@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Fila de carpeta de Librería, pensada para la pantalla de 1024x600 del radio: poca sangría,
+     ícono de carpeta chico y fijo (la raíz USB conserva su cuadro de 44dp), nombre de 21sp en 1 renglón
+     que se desliza si es largo (sin la línea de cantidad: la fila mide 60dp), + de 46x46dp y ▶ cuadrado de 52x48dp -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layoutTreeItem"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="58dp"
+    android:minHeight="60dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:layout_marginBottom="4dp"
+    android:layout_marginBottom="8dp"
     android:paddingTop="4dp"
     android:paddingBottom="4dp"
     android:paddingEnd="8dp"
@@ -16,42 +19,43 @@
     <!-- Espaciador dinámico según nivel de profundidad (indent) -->
     <View
         android:id="@+id/viewIndent"
-        android:layout_width="8dp"
+        android:layout_width="2dp"
         android:layout_height="1dp" />
 
-    <!-- Flecha de Despliegue (> o v) o Punto si no tiene hijos -->
+    <!-- Flecha de Despliegue (> o v); invisible si no tiene subcarpetas -->
     <ImageView
         android:id="@+id/ivTreeArrow"
         android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_height="30dp"
         android:src="@drawable/ic_chevron_right"
         android:scaleType="centerInside"
-        android:layout_marginEnd="6dp" />
+        android:layout_marginEnd="2dp" />
 
-    <!-- Cuadro con Icono (USB verde o Carpeta azul) -->
+    <!-- Ícono fijo (no se desliza con el nombre): cuadro verde de 44dp en la raíz USB; en las
+         carpetas, solo el dibujo cian de 20dp, del alto del texto (lo ajusta el adaptador) -->
     <FrameLayout
         android:id="@+id/frameTreeIcon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:background="@drawable/bg_tree_icon_folder"
         android:layout_gravity="center_vertical">
 
         <ImageView
             android:id="@+id/ivTreeIcon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_tree_folder" />
     </FrameLayout>
 
-    <!-- Título de la Carpeta -->
+    <!-- Nombre de la carpeta (1 renglón, se desliza si es largo; la tocada, completo en 2) -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="8dp">
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="6dp">
 
         <TextView
             android:id="@+id/tvTreeTitle"
@@ -65,16 +69,15 @@
             android:focusableInTouchMode="true"
             android:text="Nombre Carpeta"
             android:textColor="#f8fafc"
-            android:textSize="16sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
     </LinearLayout>
 
     <!-- + : agregar la carpeta entera a Mi Mix (solo si tiene canciones directas) -->
     <ImageButton
         android:id="@+id/btnTreeAddMix"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_marginStart="6dp"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
         android:background="@drawable/bg_folder_addmix"
         android:src="@drawable/ic_mix_add"
         android:scaleType="center"
@@ -82,42 +85,38 @@
         android:focusableInTouchMode="false"
         android:contentDescription="Agregar carpeta a Mi Lista" />
 
-    <!-- Botón Reproducir Carpeta [ N ▶ ] (Solo si tiene canciones directas) -->
-    <LinearLayout
+    <!-- ▶ : reproducir la carpeta (solo si tiene canciones directas) -->
+    <FrameLayout
         android:id="@+id/btnFolderPlay"
-        android:layout_width="wrap_content"
-        android:layout_height="34dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="8dp"
+        android:layout_width="52dp"
+        android:layout_height="48dp"
         android:background="@drawable/bg_folder_play_btn"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="4dp"
+        android:layout_marginStart="8dp"
         android:clickable="true"
-        android:focusable="true">
-
-        <TextView
-            android:id="@+id/tvTreeDirectCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textColor="#ffffff"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:layout_marginEnd="7dp" />
+        android:focusable="true"
+        android:contentDescription="Reproducir carpeta">
 
         <FrameLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:id="@+id/frameFolderPlayCircle"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
             android:background="@drawable/bg_white_circle">
 
             <ImageView
-                android:layout_width="10dp"
-                android:layout_height="10dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_play_triangle" />
         </FrameLayout>
-    </LinearLayout>
+
+        <!-- En la carpeta que suena, el ▶ se cambia por un ecualizador (se mueve mientras suena, quieto en pausa) -->
+        <com.jh.carvideo.MiniEqualizerView
+            android:id="@+id/eqFolderPlaying"
+            android:layout_width="24dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout>

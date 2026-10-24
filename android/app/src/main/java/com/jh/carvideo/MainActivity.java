@@ -20,9 +20,9 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.media.AudioManager;
 import android.media.MediaExtractor;
@@ -46,6 +46,7 @@ import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.ReplacementSpan;
 import android.util.TypedValue;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -67,6 +68,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -141,7 +143,10 @@ public class MainActivity extends Activity {
     private boolean globalGestureHandled = false;
     private SeekBar seekTrackProgress;
     private TextView tvTimeCurrent, tvTimeTotal;
-    private ImageButton btnShuffle, btnPrev, btnPlayPause, btnNext, btnRepeat;
+    private ImageButton btnPrev, btnPlayPause, btnNext;
+    private PopupWindow playerMenuPopup;           // menú ☰: aleatorio y repetir
+    private ImageView ivModeRepeat, ivModeShuffle; // indicadores sobre el video (y en pantalla completa)
+    private ImageView ivFsModeRepeat, ivFsModeShuffle;
 
     // Explorador y Reproductor
     private LinearLayout layoutExplorerPanel;
@@ -217,6 +222,20 @@ public class MainActivity extends Activity {
     private String currentSelectedFolder = null;
     private String currentSelectedFolderUsbSource = null;
 
+    // HUD de Volumen Flotante (Gestos Ciegos en Auto)
+    private View layoutBlindVolHud;
+    private ImageView ivBlindHudIcon;
+    private View viewBlindHudFill;
+    private TextView tvBlindHudPercent;
+    private boolean blindVolDragging = false;
+    private float blindVolStartX = 0;
+    private float blindVolStartY = 0;
+    private int blindVolStartVal = 0;
+    private boolean blindVolPassedDeadzone = false;
+    private final Runnable hideBlindVolHudRunnable = () -> {
+        if (layoutBlindVolHud != null) layoutBlindVolHud.setVisibility(View.GONE);
+    };
+
     // Filtros de Búsqueda y USBs
     public static final int FILTER_FOLDER = 0; // Esta Carpeta
     public static final int FILTER_ALL = 1;    // TODO
@@ -284,6 +303,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         initViews();
+        initBlindVolumeHud();
         setupFastScroller();
         buildTreeFromTracks(allTracks);
         updateVisibleTreeNodes();
@@ -294,6 +314,11 @@ public class MainActivity extends Activity {
         // JH VIDEO no tiene Automix: entre videos no hay mezcla (así tampoco se analiza el audio)
         autoMixer.setEnabled(false);
         updateAutoMixButton();
+        // Aleatorio y repetir recuerdan cómo quedaron
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        isShuffle = prefs.getBoolean(PREF_SHUFFLE, false);
+        isRepeat = prefs.getBoolean(PREF_REPEAT, false);
+        updateModeIndicators();
         setupExplorerControls();
         setupProgressUpdater();
         startLoadMonitor();
@@ -329,9 +354,12 @@ public class MainActivity extends Activity {
             }
         }
         tvClock = findViewById(R.id.tvClock);
+        tvStripClockHour = findViewById(R.id.tvStripClockHour);
+        tvStripClockMin = findViewById(R.id.tvStripClockMin);
+        viewUsbDot = findViewById(R.id.viewUsbDot);
         btnRescanUsb = findViewById(R.id.btnRescanUsb);
 
-        // Franja de volumen (54dp)
+        // Franja de volumen (72dp)
         btnNavHome = findViewById(R.id.btnNavHome);
         btnVolMute = findViewById(R.id.btnVolMute);
         tvVolPercent = findViewById(R.id.tvVolPercent);
@@ -368,11 +396,11 @@ public class MainActivity extends Activity {
         seekTrackProgress = findViewById(R.id.seekTrackProgress);
         tvTimeCurrent = findViewById(R.id.tvTimeCurrent);
         tvTimeTotal = findViewById(R.id.tvTimeTotal);
-        btnShuffle = findViewById(R.id.btnShuffle);
         btnPrev = findViewById(R.id.btnPrev);
         btnPlayPause = findViewById(R.id.btnPlayPause);
         btnNext = findViewById(R.id.btnNext);
-        btnRepeat = findViewById(R.id.btnRepeat);
+        ivModeRepeat = findViewById(R.id.ivModeRepeat);
+        ivModeShuffle = findViewById(R.id.ivModeShuffle);
 
         // Explorador y reproductor
         layoutExplorerPanel = findViewById(R.id.layoutExplorerPanel);
@@ -497,11 +525,18 @@ public class MainActivity extends Activity {
             @Override
             public void onNodeClick(TreeNode node, int position) {
                 hideKeyboard();
-                // Un toque solo explora (expande/contrae); la carpeta activa de Pistas se elige con [N ▶]
+                long now = SystemClock.uptimeMillis();
+                boolean doubleTap = node == lastTappedTreeNode && now - lastTappedTreeNodeAt <= FOLDER_DOUBLE_TAP_MS;
+                lastTappedTreeNode = doubleTap ? null : node;
+                lastTappedTreeNodeAt = now;
+                // Un toque solo explora (expande/contrae); la carpeta activa de Videos se elige con [N ▶]
                 if (node.hasChildren()) {
                     node.setExpanded(!node.isExpanded());
                     updateVisibleTreeNodes();
                 }
+                folderTreeAdapter.flash(node); // la fila se enciende: se nota que el toque entró
+                // Dos toques = lo mismo que [N ▶] (el segundo toque deja la carpeta abierta o cerrada como estaba)
+                if (doubleTap && node.getDirectTrackCount() > 0) playFolderFromNode(node);
             }
 
             @Override
@@ -769,6 +804,12 @@ public class MainActivity extends Activity {
                     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
                     tvClock.setText(sdf.format(new Date()));
                 }
+                // Reloj de la tira de volumen: horas arriba, minutos abajo
+                if (tvStripClockHour != null) {
+                    Date now = new Date();
+                    tvStripClockHour.setText(new SimpleDateFormat("HH", Locale.getDefault()).format(now));
+                    tvStripClockMin.setText(new SimpleDateFormat("mm", Locale.getDefault()).format(now));
+                }
                 handler.postDelayed(this, 1000);
             }
         };
@@ -792,6 +833,8 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        // Anterior / play / siguiente en toda la franja de abajo del reproductor
+        if (handleNavZoneTouch(ev)) return true;
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 globalTouchStartX = ev.getRawX();
@@ -841,10 +884,62 @@ public class MainActivity extends Activity {
                         }
                     }
                 }
+
+                // Gesto ciego de volumen vertical en pantalla
+                blindVolDragging = false;
+                blindVolPassedDeadzone = false;
+                // No en el explorador: ahí un arrastre vertical es scroll de la lista (o reordenar la lista);
+                // si no, la lista se trababa y el volumen cambiaba al buscar una canción
+                if (!globalTouchOnSeekbar && !globalTouchInToggleZone && !(getCurrentFocus() instanceof EditText)
+                        && !isTouchInExplorer(globalTouchStartX, globalTouchStartY)) {
+                    if (isVideoFs && seekFsProgress != null) {
+                        Rect fsSeekRect = new Rect();
+                        if (seekFsProgress.getGlobalVisibleRect(fsSeekRect)) {
+                            fsSeekRect.inset(0, -25);
+                            if (fsSeekRect.contains((int) globalTouchStartX, (int) globalTouchStartY)) {
+                                globalTouchOnSeekbar = true;
+                            }
+                        }
+                    }
+                    if (!globalTouchOnSeekbar) {
+                        blindVolStartX = ev.getRawX();
+                        blindVolStartY = ev.getRawY();
+                        blindVolStartVal = currentVolPercent;
+                        blindVolDragging = true;
+                    }
+                }
                 break;
             }
 
             case MotionEvent.ACTION_MOVE: {
+                // Gesto ciego vertical de volumen (en toda la pantalla con bloqueo direccional)
+                if (blindVolDragging && !globalTouchOnSeekbar) {
+                    float dx = ev.getRawX() - blindVolStartX;
+                    float dy = blindVolStartY - ev.getRawY(); // Arriba = subir (+), abajo = bajar (-)
+
+                    if (!blindVolPassedDeadzone) {
+                        // Si el movimiento es horizontal (ej. jalar panel): cancelar volumen
+                        if (Math.abs(dx) > dp(14) && Math.abs(dx) > Math.abs(dy)) {
+                            blindVolDragging = false;
+                        } else if (Math.abs(dy) > dp(14) && Math.abs(dy) > Math.abs(dx) * 1.2f) {
+                            blindVolPassedDeadzone = true;
+                            // El gesto se queda con el toque: lo que estaba debajo del dedo (la carátula, una fila)
+                            // recibe un CANCEL; si no, quedaba presionado (la carátula se ponía naranja)
+                            MotionEvent cancel = MotionEvent.obtain(ev);
+                            cancel.setAction(MotionEvent.ACTION_CANCEL);
+                            super.dispatchTouchEvent(cancel);
+                            cancel.recycle();
+                        }
+                    }
+
+                    if (blindVolPassedDeadzone) {
+                        float deltaPercent = (dy / (float) dp(240)) * 100f;
+                        int targetPercent = Math.max(0, Math.min(100, Math.round(blindVolStartVal + deltaPercent)));
+                        setVolumePercent(targetPercent, true);
+                        return true;
+                    }
+                }
+
                 if (!globalGestureHandled && globalTouchInToggleZone && !globalTouchOnSeekbar && layoutExplorerPanel != null) {
                     float dx = ev.getRawX() - globalTouchStartX;
                     float dy = ev.getRawY() - globalTouchStartY;
@@ -871,6 +966,15 @@ public class MainActivity extends Activity {
             }
 
             case MotionEvent.ACTION_UP: {
+                if (blindVolPassedDeadzone) {
+                    blindVolDragging = false;
+                    blindVolPassedDeadzone = false;
+                    handler.removeCallbacks(hideBlindVolHudRunnable);
+                    handler.postDelayed(hideBlindVolHudRunnable, 1100);
+                    return true;
+                }
+                blindVolDragging = false;
+
                 if (globalGestureHandled) {
                     return true;
                 }
@@ -1011,19 +1115,80 @@ public class MainActivity extends Activity {
         seekVolume.setProgress(percent);
     }
 
-    private void adjustVolumeStep(boolean up) {
+    private void setVolumePercent(int percent, boolean showHud) {
         if (audioManager == null) return;
-        if (isMuted) setMuted(false);
-        // Incremento / decremento de 5 en 5 exacto a pedido de Hernan
-        int nextPercent = up ? Math.min(100, currentVolPercent + 5) : Math.max(0, currentVolPercent - 5);
-        currentVolPercent = nextPercent;
-
+        if (isMuted && percent > 0) setMuted(false);
+        currentVolPercent = Math.max(0, Math.min(100, percent));
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int target = Math.round((currentVolPercent / 100f) * max);
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0);
 
-        seekVolume.setProgress(currentVolPercent);
-        tvVolPercent.setText(currentVolPercent + "%");
+        if (seekVolume != null) seekVolume.setProgress(currentVolPercent);
+        if (tvVolPercent != null) tvVolPercent.setText(currentVolPercent + "%");
+        if (showHud) showBlindVolumeHud(currentVolPercent);
+    }
+
+    private void initBlindVolumeHud() {
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
+        layoutBlindVolHud = getLayoutInflater().inflate(R.layout.layout_blind_volume_hud, content, false);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                dp(140), ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
+        content.addView(layoutBlindVolHud, lp);
+        ivBlindHudIcon = layoutBlindVolHud.findViewById(R.id.ivBlindHudIcon);
+        viewBlindHudFill = layoutBlindVolHud.findViewById(R.id.viewBlindHudFill);
+        tvBlindHudPercent = layoutBlindVolHud.findViewById(R.id.tvBlindHudPercent);
+    }
+
+    /**
+     * true si el toque cae en el explorador visible (pestañas, buscador, listas y el espacio vacío debajo):
+     * ahí deslizar arriba / abajo es el scroll de la lista, no el volumen.
+     */
+    private boolean isTouchInExplorer(float rawX, float rawY) {
+        if (isVideoFs) return false; // en pantalla completa el explorador queda tapado por el video
+        if (layoutExplorerPanel == null || layoutExplorerPanel.getVisibility() != View.VISIBLE) return false;
+        Rect rect = new Rect();
+        return layoutExplorerPanel.getGlobalVisibleRect(rect) && rect.contains((int) rawX, (int) rawY);
+    }
+
+    private void showBlindVolumeHud(int percent) {
+        if (layoutBlindVolHud == null) return;
+        handler.removeCallbacks(hideBlindVolHudRunnable);
+        layoutBlindVolHud.setVisibility(View.VISIBLE);
+        layoutBlindVolHud.bringToFront();
+
+        if (tvBlindHudPercent != null) tvBlindHudPercent.setText(percent + "%");
+
+        if (viewBlindHudFill != null) {
+            int trackH = dp(130);
+            int fillH = Math.round((percent / 100f) * trackH);
+            ViewGroup.LayoutParams lp = viewBlindHudFill.getLayoutParams();
+            if (lp != null) {
+                lp.height = fillH;
+                viewBlindHudFill.setLayoutParams(lp);
+            }
+        }
+
+        if (ivBlindHudIcon != null) {
+            if (percent == 0 || isMuted) {
+                ivBlindHudIcon.setImageResource(R.drawable.ic_vol_muted);
+                ivBlindHudIcon.setColorFilter(Color.parseColor("#ef4444"));
+            } else if (percent < 35) {
+                ivBlindHudIcon.setImageResource(R.drawable.ic_vol_on);
+                ivBlindHudIcon.setColorFilter(Color.parseColor("#38bdf8"));
+            } else {
+                ivBlindHudIcon.setImageResource(R.drawable.ic_vol_on);
+                ivBlindHudIcon.setColorFilter(Color.parseColor("#38bdf8"));
+            }
+        }
+    }
+
+    private void adjustVolumeStep(boolean up) {
+        if (audioManager == null) return;
+        if (isMuted) setMuted(false);
+        // Incremento / decremento de 10 en 10 exacto a pedido de Hernan
+        int nextPercent = up ? Math.min(100, currentVolPercent + 10) : Math.max(0, currentVolPercent - 10);
+        setVolumePercent(nextPercent, true);
     }
 
     private void toggleMute() {
@@ -1066,21 +1231,15 @@ public class MainActivity extends Activity {
         // Botón y Zona Táctil Ergonómica para alternar o deslizar el explorador de música
         setupExplorerToggleGestures();
 
-        btnShuffle.setOnClickListener(v -> {
-            isShuffle = !isShuffle;
-            btnShuffle.setSelected(isShuffle);
-            updateSecondaryButton(btnShuffle, isShuffle);
-            autoMixer.invalidateNext();
-            Toast.makeText(this, isShuffle ? "Aleatorio activado" : "Modo secuencial", Toast.LENGTH_SHORT).show();
-        });
-
-        btnRepeat.setOnClickListener(v -> {
-            isRepeat = !isRepeat;
-            btnRepeat.setSelected(isRepeat);
-            updateSecondaryButton(btnRepeat, isRepeat);
-            autoMixer.invalidateNext();
-            Toast.makeText(this, isRepeat ? "Repetir video actual" : "Repetir carpeta", Toast.LENGTH_SHORT).show();
-        });
+        // Aleatorio y repetir están en el menú ☰ que flota sobre el video
+        View btnVideoMenu = findViewById(R.id.btnVideoMenu);
+        if (btnVideoMenu != null) btnVideoMenu.setOnClickListener(v -> showPlayerMenu(layoutPlayerPanel));
+        // Solo audio (foco, arriba al centro del video)
+        btnAudioOnly = findViewById(R.id.btnAudioOnly);
+        tvVideoAlert = findViewById(R.id.tvVideoAlert);
+        layoutAudioOnly = findViewById(R.id.layoutAudioOnly);
+        if (btnAudioOnly != null) btnAudioOnly.setOnClickListener(v -> setAudioOnly(!audioOnly));
+        updateAudioOnlyViews();
 
         seekTrackProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -1131,21 +1290,24 @@ public class MainActivity extends Activity {
     // ==========================================
 
     /**
-     * Tamaños de los controles como la web: con el explorador abierto play 76 / anterior-siguiente 58 /
-     * aleatorio-repetir 52dp; con el explorador oculto 88 / 66 / 58dp. Íconos: 34-38 / 36-40 / 26-28dp.
+     * Tamaños de los controles como JH MUSIC: con el explorador abierto play 88dp (ícono de 40dp) y anterior /
+     * siguiente 74dp (ícono de 50dp); con el explorador oculto 100dp (ícono de 44dp) y 80dp (ícono de 56dp).
+     * Del play al ícono quedan 48dp (72dp con el explorador oculto): 12dp de margen del play + el margen de
+     * aquí + 12dp de relleno.
      */
     private void applyPlayerControlSizes(boolean expanded) {
-        sizeControl(btnPlayPause, expanded ? 88 : 76, expanded ? 38 : 34);
-        sizeControl(btnPrev, expanded ? 66 : 58, expanded ? 40 : 36);
-        sizeControl(btnNext, expanded ? 66 : 58, expanded ? 40 : 36);
-        sizeControl(btnShuffle, expanded ? 58 : 52, expanded ? 28 : 26);
-        sizeControl(btnRepeat, expanded ? 58 : 52, expanded ? 28 : 26);
-        updateSecondaryButton(btnShuffle, isShuffle);
-        updateSecondaryButton(btnRepeat, isRepeat);
+        sizeControl(btnPlayPause, expanded ? 100 : 88, expanded ? 44 : 40);
+        sizeControl(btnPrev, expanded ? 80 : 74, expanded ? 56 : 50);
+        sizeControl(btnNext, expanded ? 80 : 74, expanded ? 56 : 50);
+        int gap = dp(expanded ? 48 : 24);
+        ((ViewGroup.MarginLayoutParams) btnPrev.getLayoutParams()).setMarginEnd(gap);
+        ((ViewGroup.MarginLayoutParams) btnNext.getLayoutParams()).setMarginStart(gap);
+        btnPrev.requestLayout();
 
-        // Con el explorador oculto, tarjetas, barra y controles no pasan de 540dp (centrados), como la web
+        // Con el explorador oculto, tarjetas y barra no pasan de 540dp (centrados), como la web. Los controles
+        // quedan centrados en todo el ancho (anterior / siguiente responden hasta los bordes: handleNavZoneTouch)
         int maxWidth = expanded ? dp(540) : ViewGroup.LayoutParams.MATCH_PARENT;
-        for (int id : new int[]{R.id.layoutAdjacentPreviews, R.id.layoutProgressBlock, R.id.layoutTransportControls}) {
+        for (int id : new int[]{R.id.layoutAdjacentPreviews, R.id.layoutProgressBlock}) {
             View v = findViewById(id);
             if (v == null) continue;
             ViewGroup.LayoutParams lp = v.getLayoutParams();
@@ -1175,29 +1337,219 @@ public class MainActivity extends Activity {
         button.setPadding(pad, pad, pad, pad);
     }
 
-    /**
-     * Aleatorio / Repetir: ícono blanco (85 %) apagado; cian con un puntito de 6dp debajo encendido,
-     * igual que la web. El puntito es el fondo del botón (se rearma con su tamaño).
-     */
-    private void updateSecondaryButton(ImageButton button, boolean active) {
-        if (button == null) return;
-        button.setSelected(active);
-        button.setColorFilter(active ? Color.parseColor("#38bdf8") : Color.argb(217, 255, 255, 255), PorterDuff.Mode.SRC_IN);
-        int size = button.getLayoutParams() != null && button.getLayoutParams().width > 0
-                ? button.getLayoutParams().width : dp(52);
-        if (!active) {
-            button.setBackgroundResource(R.drawable.bg_ctrl_flat);
-            return;
+    // ==========================================
+    // ZONAS DE ANTERIOR / PLAY / SIGUIENTE PARA EL AUTO (igual que JH MUSIC)
+    // Toda la franja de abajo del reproductor (debajo de los tiempos, hasta el borde de la pantalla) responde,
+    // en tres columnas: el play con 24dp de más a cada lado (un toque que falla por poco igual es play),
+    // a su izquierda anterior y a su derecha siguiente. Solo se ilumina el botón, mientras el dedo está
+    // encima y 180 ms más, para que un toque rápido también se vea. En pantalla completa no se usa
+    // ==========================================
+    private static final int PLAY_ZONE_EXTRA_DP = 24;
+    private View navZoneTarget;             // btnPrev / btnPlayPause / btnNext mientras el dedo está en su zona
+    private View navZoneTopView;            // la franja empieza debajo de la barra de progreso y los tiempos
+    private final Runnable navZoneUnflash = () -> {
+        btnPrev.setActivated(false);
+        btnPlayPause.setActivated(false);
+        btnNext.setActivated(false);
+        // También los de la pantalla completa: si no, quedaban encendidos (círculo cian fijo)
+        View fs = MainActivity.this.layoutVideoFs;
+        if (fs != null) {
+            for (int id : new int[]{R.id.btnFsPrev, R.id.btnFsPlay, R.id.btnFsNext}) {
+                View b = fs.findViewById(id);
+                if (b != null) b.setActivated(false);
+            }
         }
-        GradientDrawable dot = new GradientDrawable();
-        dot.setShape(GradientDrawable.OVAL);
-        dot.setColor(Color.parseColor("#38bdf8"));
-        int dotSize = dp(6);
-        int side = (size - dotSize) / 2;
-        int bottom = dp(4);
-        LayerDrawable bg = new LayerDrawable(new Drawable[]{dot});
-        bg.setLayerInset(0, side, size - bottom - dotSize, side, bottom);
-        button.setBackground(bg);
+    };
+
+    /** true si el toque es de una zona de anterior / play / siguiente (y ya se manejó aquí). */
+    private boolean handleNavZoneTouch(MotionEvent ev) {
+        int action = ev.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            navZoneTarget = navZoneAt(ev.getRawX(), ev.getRawY());
+            if (navZoneTarget == null) return false;
+            handler.removeCallbacks(navZoneUnflash);
+            navZoneUnflash.run();
+            navZoneTarget.setActivated(true);
+            return true;
+        }
+        if (navZoneTarget == null) return false;
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            View target = navZoneTarget;
+            navZoneTarget = null;
+            handler.postDelayed(navZoneUnflash, 180);
+            // El clic pasa por el botón: un toque cambia de video, dos seguidos = ±10 s; en el play, play / pausa
+            if (action == MotionEvent.ACTION_UP) {
+                target.performClick();
+                if (isVideoFs) scheduleFsHide();
+            }
+        }
+        return true;
+    }
+
+    private View navZoneAt(float x, float y) {
+        if (isVideoFs) {
+            if (layoutFsControls == null || layoutFsControls.getVisibility() != View.VISIBLE) return null;
+            if (btnFsPlay == null || seekFsProgress == null) return null;
+            Rect fsBottom = new Rect();
+            Rect seek = new Rect();
+            Rect play = new Rect();
+            View fsBottomView = layoutVideoFs != null ? layoutVideoFs.findViewById(R.id.layoutFsBottom) : null;
+            if (fsBottomView == null || !fsBottomView.getGlobalVisibleRect(fsBottom)
+                    || !seekFsProgress.getGlobalVisibleRect(seek)
+                    || !btnFsPlay.getGlobalVisibleRect(play)) return null;
+            if (!fsBottom.contains((int) x, (int) y) || y < seek.bottom) return null;
+            int extra = dp(PLAY_ZONE_EXTRA_DP);
+            View btnFsPrev = layoutVideoFs.findViewById(R.id.btnFsPrev);
+            View btnFsNext = layoutVideoFs.findViewById(R.id.btnFsNext);
+            if (x < play.left - extra) return btnPrev != null ? btnFsPrev : null;
+            if (x > play.right + extra) return btnNext != null ? btnFsNext : null;
+            return btnFsPlay;
+        }
+        if (navZoneTopView == null) navZoneTopView = findViewById(R.id.layoutProgressBlock);
+        if (layoutPlayerPanel == null || navZoneTopView == null || btnPlayPause == null) return null;
+        Rect panel = new Rect();
+        Rect top = new Rect();
+        Rect play = new Rect();
+        if (!layoutPlayerPanel.getGlobalVisibleRect(panel) || !navZoneTopView.getGlobalVisibleRect(top)
+                || !btnPlayPause.getGlobalVisibleRect(play)) return null;
+        if (!panel.contains((int) x, (int) y) || y < top.bottom) return null;
+        int extra = dp(PLAY_ZONE_EXTRA_DP);
+        if (x < play.left - extra) return btnPrev;
+        if (x > play.right + extra) return btnNext;
+        return btnPlayPause;
+    }
+
+    // ==========================================
+    // MENÚ ☰ (igual que JH MUSIC, sin la fila del explorador): aleatorio y repetir video.
+    // Flota sobre el video; en pantalla completa aparece con los demás controles. Se abre encima del
+    // reproductor (o de la pantalla completa) y se cierra solo a los 5 s, tocando fuera o en ✕
+    // ==========================================
+    private static final String PREF_SHUFFLE = "shuffle_on";
+    private static final String PREF_REPEAT = "repeat_on";
+    private static final int PLAYER_MENU_AUTO_CLOSE_MS = 5000;
+    private final Runnable closePlayerMenu = () -> {
+        if (playerMenuPopup != null) playerMenuPopup.dismiss();
+    };
+
+    private void showPlayerMenu(View over) {
+        if (over == null || over.getWidth() == 0) return;
+        if (playerMenuPopup == null) {
+            View content = getLayoutInflater().inflate(R.layout.popup_player_menu, null);
+            // Sin foco: con foco, Android saca la barra de navegación (la app va a pantalla completa) y el menú
+            // se corre hacia arriba. Tocar fuera también lo cierra
+            playerMenuPopup = new PopupWindow(content, 0, 0, false);
+            playerMenuPopup.setOutsideTouchable(true);
+            // Sin esto Android lo sube para que no pise la barra de navegación (oculta)
+            playerMenuPopup.setClippingEnabled(false);
+            playerMenuPopup.setAnimationStyle(0); // sin animación (radios con animaciones desactivadas)
+            playerMenuPopup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            playerMenuPopup.setOnDismissListener(() -> {
+                handler.removeCallbacks(closePlayerMenu);
+                // En pantalla completa los controles vuelven a ocultarse solos
+                scheduleFsHide();
+            });
+
+            content.setOnClickListener(v -> playerMenuPopup.dismiss()); // tocar fuera del panel
+            content.findViewById(R.id.menuClose).setOnClickListener(v -> playerMenuPopup.dismiss());
+            // Re-escanear USB (antes en la barra de arriba): es una acción, cierra el menú
+            content.findViewById(R.id.menuRescan).setOnClickListener(v -> {
+                playerMenuPopup.dismiss();
+                hideKeyboard();
+                Toast.makeText(this, "Escaneando pendrives USB...", Toast.LENGTH_SHORT).show();
+                startUsbScan();
+            });
+            try {
+                String verName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                ((TextView) content.findViewById(R.id.menuVersion)).setText("JH VIDEO v" + verName);
+            } catch (Exception ignored) {}
+            content.findViewById(R.id.menuShuffle).setOnClickListener(v -> {
+                isShuffle = !isShuffle;
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(PREF_SHUFFLE, isShuffle).apply();
+                autoMixer.invalidateNext();
+                refreshPlayerMenu();
+                updateModeIndicators();
+                restartPlayerMenuTimer();
+            });
+            content.findViewById(R.id.menuRepeat).setOnClickListener(v -> {
+                isRepeat = !isRepeat;
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(PREF_REPEAT, isRepeat).apply();
+                autoMixer.invalidateNext();
+                refreshPlayerMenu();
+                updateModeIndicators();
+                restartPlayerMenuTimer();
+            });
+        }
+        refreshPlayerMenu();
+        // Mientras el menú está abierto, los controles de la pantalla completa no se ocultan
+        handler.removeCallbacks(hideFsControlsRunnable);
+        int[] loc = new int[2];
+        over.getLocationInWindow(loc);
+        playerMenuPopup.setWidth(over.getWidth());
+        playerMenuPopup.setHeight(over.getHeight());
+        playerMenuPopup.showAtLocation(over, Gravity.NO_GRAVITY, loc[0], loc[1]);
+        restartPlayerMenuTimer();
+    }
+
+    private void restartPlayerMenuTimer() {
+        handler.removeCallbacks(closePlayerMenu);
+        handler.postDelayed(closePlayerMenu, PLAYER_MENU_AUTO_CLOSE_MS);
+    }
+
+    /** ON / OFF escrito y en cian lo que está encendido. */
+    private void refreshPlayerMenu() {
+        if (playerMenuPopup == null) return;
+        View content = playerMenuPopup.getContentView();
+        refreshPlayerMenuRow(content, R.id.menuShuffle, R.id.menuShuffleIcon, R.id.menuShuffleTitle, R.id.menuShuffleState, isShuffle);
+        refreshPlayerMenuRow(content, R.id.menuRepeat, R.id.menuRepeatIcon, R.id.menuRepeatTitle, R.id.menuRepeatState, isRepeat);
+    }
+
+    private void refreshPlayerMenuRow(View content, int rowId, int iconId, int titleId, int stateId, boolean on) {
+        int cyan = Color.parseColor("#38bdf8");
+        content.findViewById(rowId).setBackgroundResource(on ? R.drawable.bg_player_menu_row_on : R.drawable.bg_player_menu_row);
+        ((ImageView) content.findViewById(iconId)).setColorFilter(on ? cyan : Color.WHITE, PorterDuff.Mode.SRC_IN);
+        ((TextView) content.findViewById(titleId)).setTextColor(on ? cyan : getResources().getColor(R.color.text_primary));
+        TextView state = content.findViewById(stateId);
+        state.setText(on ? "ON" : "OFF");
+        state.setBackgroundResource(on ? R.drawable.bg_player_menu_state_on : R.drawable.bg_player_menu_state);
+        state.setTextColor(on ? Color.parseColor("#04121c") : getResources().getColor(R.color.text_secondary));
+    }
+
+    // ==========================================
+    // SOLO AUDIO (foco): de noche la imagen puede encandilar, o no se permite video a la vista del conductor.
+    // Tapa la imagen en negro y el audio sigue sonando, con los controles a mano. El video se sigue
+    // decodificando detrás (al apagarlo, la imagen vuelve al instante). Sigue así al cambiar de video,
+    // hasta que se vuelva a tocar el foco
+    // ==========================================
+    private boolean audioOnly = false;
+    private ImageButton btnAudioOnly, btnFsAudioOnly;
+    private View layoutAudioOnly, layoutFsAudioOnly;
+
+    private void setAudioOnly(boolean on) {
+        audioOnly = on;
+        updateAudioOnlyViews();
+    }
+
+    /** Negro sobre el video (reproductor y pantalla completa) y el foco: tachado y en cian mientras está activo. */
+    private void updateAudioOnlyViews() {
+        int cover = audioOnly ? View.VISIBLE : View.GONE;
+        if (layoutAudioOnly != null) layoutAudioOnly.setVisibility(cover);
+        if (layoutFsAudioOnly != null) layoutFsAudioOnly.setVisibility(cover);
+        int cyan = Color.parseColor("#38bdf8");
+        for (ImageButton b : new ImageButton[]{btnAudioOnly, btnFsAudioOnly}) {
+            if (b == null) continue;
+            b.setImageResource(audioOnly ? R.drawable.ic_bulb_off : R.drawable.ic_bulb);
+            b.setColorFilter(audioOnly ? cyan : Color.WHITE, PorterDuff.Mode.SRC_IN);
+        }
+    }
+
+    /** Íconos de repetir y aleatorio, solo si están encendidos: sobre el video y en la pantalla completa. */
+    private void updateModeIndicators() {
+        for (View v : new View[]{ivModeRepeat, ivFsModeRepeat}) {
+            if (v != null) v.setVisibility(isRepeat ? View.VISIBLE : View.GONE);
+        }
+        for (View v : new View[]{ivModeShuffle, ivFsModeShuffle}) {
+            if (v != null) v.setVisibility(isShuffle ? View.VISIBLE : View.GONE);
+        }
     }
 
     private int dp(int value) {
@@ -1205,6 +1557,7 @@ public class MainActivity extends Activity {
     }
 
     private void updatePlaybackStateUI() {
+        if (folderTreeAdapter != null) folderTreeAdapter.setPlaybackRunning(isPlaying);
         if (isPlaying) {
             btnPlayPause.setImageResource(R.drawable.ic_ctrl_pause);
             tvPlaybackStatus.setText(autoMixer.isEnabled() ? "● REPRODUCIENDO · AUTOMIX" : "● REPRODUCIENDO");
@@ -1650,9 +2003,9 @@ public class MainActivity extends Activity {
      */
     private void refreshTabLabels() {
         if (tabFolders == null) return;
-        setTabLabel(tabFolders, R.drawable.ic_tab_folder, "Carpetas USB", currentTab == 0);
-        setTabLabel(tabTracks, R.drawable.ic_tab_list, "Videos (" + currentPlaylist.size() + ")", currentTab == 1);
-        setTabLabel(tabMyMix, R.drawable.ic_tab_mymix, "Mi Lista (" + (myMixLoaded ? mixTracks().size() : 0) + ")", currentTab == 2);
+        setTabLabel(tabFolders, R.drawable.ic_tab_folder, "Librería", currentTab == 0);
+        setTabLabel(tabTracks, R.drawable.ic_tab_video, "Videos", currentPlaylist.size(), currentTab == 1);
+        setTabLabel(tabMyMix, R.drawable.ic_tab_mymix, "Mi Lista", myMixLoaded ? mixTracks().size() : 0, currentTab == 2);
         addMixLiveDot();
     }
 
@@ -1744,6 +2097,75 @@ public class MainActivity extends Activity {
         tab.setBackgroundResource(selected ? R.drawable.bg_tab_selected : R.drawable.bg_tab_unselected);
     }
 
+    /**
+     * Pestaña con el número en una etiqueta chica redondeada al lado ("Canciones [109]"), sin
+     * paréntesis: ocupa menos y no se parte en dos renglones en la pantalla de 1024x600.
+     */
+    private void setTabLabel(Button tab, int iconRes, String text, int count, boolean selected) {
+        setTabLabel(tab, iconRes, text, selected);
+        if (tab == null) return;
+        SpannableStringBuilder ssb = new SpannableStringBuilder(tab.getText());
+        ssb.append(" ");
+        int start = ssb.length();
+        ssb.append(String.valueOf(count));
+        ssb.setSpan(new CountBadgeSpan(
+                        selected ? Color.parseColor("#330c0e12") : Color.parseColor("#26ffffff"),
+                        selected ? Color.parseColor("#0c0e12") : Color.parseColor("#e2e8f0"),
+                        sp(13), dp(7), dp(21)),
+                start, ssb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        tab.setText(ssb);
+        tab.setSingleLine(true);
+        tab.setMinWidth(0);
+        tab.setMinimumWidth(0);
+        tab.setPadding(dp(4), 0, dp(4), 0);
+    }
+
+    private float sp(float v) {
+        return v * getResources().getDisplayMetrics().scaledDensity;
+    }
+
+    /** Etiqueta redondeada con un número, centrada en el renglón (para las pestañas). */
+    private static class CountBadgeSpan extends ReplacementSpan {
+        private final int bgColor, fgColor;
+        private final float textSize, padH, height;
+
+        CountBadgeSpan(int bgColor, int fgColor, float textSize, float padH, float height) {
+            this.bgColor = bgColor;
+            this.fgColor = fgColor;
+            this.textSize = textSize;
+            this.padH = padH;
+            this.height = height;
+        }
+
+        private float width(Paint paint, CharSequence text, int start, int end) {
+            Paint p = new Paint(paint);
+            p.setTextSize(textSize);
+            return Math.max(p.measureText(text, start, end) + padH * 2, height);
+        }
+
+        @Override
+        public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
+            return Math.round(width(paint, text, start, end));
+        }
+
+        @Override
+        public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
+            float w = width(paint, text, start, end);
+            Paint.FontMetrics lineFm = paint.getFontMetrics();
+            float cy = y + (lineFm.ascent + lineFm.descent) / 2f;
+            Paint p = new Paint(paint);
+            p.setAntiAlias(true);
+            p.setColor(bgColor);
+            canvas.drawRoundRect(new android.graphics.RectF(x, cy - height / 2f, x + w, cy + height / 2f),
+                    height / 2f, height / 2f, p);
+            p.setTextSize(textSize);
+            p.setColor(fgColor);
+            p.setTextAlign(Paint.Align.CENTER);
+            Paint.FontMetrics fm = p.getFontMetrics();
+            canvas.drawText(text, start, end, x + w / 2f, cy - (fm.ascent + fm.descent) / 2f, p);
+        }
+    }
+
     private static class CenteredImageSpan extends ImageSpan {
         public CenteredImageSpan(Drawable drawable) {
             super(drawable);
@@ -1774,7 +2196,22 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Reloj y punto del pendrive en la tira de volumen (la barra de arriba está oculta)
+    private TextView tvStripClockHour, tvStripClockMin;
+    private View viewUsbDot;
+
+    /** Punto del pendrive en la tira: verde si hay alguno conectado, gris si no. */
+    private void updateUsbDot() {
+        if (viewUsbDot == null) return;
+        boolean any = hasUsb1 || hasUsb2;
+        android.graphics.drawable.Drawable bg = viewUsbDot.getBackground();
+        if (bg instanceof GradientDrawable) {
+            ((GradientDrawable) bg.mutate()).setColor(Color.parseColor(any ? "#10b981" : "#475569"));
+        }
+    }
+
     private void updateFilterChipsVisibility() {
+        updateUsbDot();
         // La barra de filtros solo tiene utilidad en la pestaña Pistas (currentTab == 1).
         // En Carpetas USB (0) el árbol organiza los pendrives, y en Mi Mix (2) se muestra la lista completa.
         if (scrollSearchFilters != null) {
@@ -1882,6 +2319,7 @@ public class MainActivity extends Activity {
                 listViewContent.setAdapter(folderTreeAdapter);
                 if (btnCollapseAllTree != null) btnCollapseAllTree.setVisibility(View.VISIBLE);
                 updateVisibleTreeNodes();
+                scrollTreeToPlayingFolder();
             } else {
                 listViewContent.setAdapter(folderAdapter);
                 if (btnCollapseAllTree != null) btnCollapseAllTree.setVisibility(View.GONE);
@@ -2128,6 +2566,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Al volver a Librería: deja a la vista la carpeta de lo que suena, con una fila antes arriba
+     * (como hace la maqueta web). Si está dentro de una carpeta cerrada, no la abre.
+     */
+    private void scrollTreeToPlayingFolder() {
+        Track playing = getCurrentTrack();
+        if (playing == null || playing.getFolder() == null || listViewContent == null) return;
+        for (int i = 0; i < visibleTreeNodes.size(); i++) {
+            TreeNode n = visibleTreeNodes.get(i);
+            if (!n.isUsbRoot() && playing.getFolder().equalsIgnoreCase(n.getName())) {
+                final int target = Math.max(0, i - 1);
+                listViewContent.post(() -> listViewContent.setSelectionFromTop(target, 0));
+                return;
+            }
+        }
+    }
+
     private void updateVisibleTreeNodes() {
         visibleTreeNodes.clear();
 
@@ -2191,6 +2646,11 @@ public class MainActivity extends Activity {
     private void updateTracksTabCount() {
         refreshTabLabels();
     }
+
+    // Dos toques seguidos en la fila de una carpeta = botón [N ▶]
+    private static final int FOLDER_DOUBLE_TAP_MS = 350;
+    private TreeNode lastTappedTreeNode;
+    private long lastTappedTreeNodeAt;
 
     private void playFolderFromNode(TreeNode node) {
         if (node == null) return;
@@ -2723,11 +3183,11 @@ public class MainActivity extends Activity {
             listViewContent.setVisibility(View.VISIBLE);
             if (btnCollapseAllTree != null) btnCollapseAllTree.setVisibility(View.VISIBLE);
             if (currentSearchFilter == FILTER_USB1) {
-                tvCurrentPath.setText("Carpetas USB 1 (Árbol)");
+                tvCurrentPath.setText("Librería USB 1 (Árbol)");
             } else if (currentSearchFilter == FILTER_USB2) {
-                tvCurrentPath.setText("Carpetas USB 2 (Árbol)");
+                tvCurrentPath.setText("Librería USB 2 (Árbol)");
             } else {
-                tvCurrentPath.setText("Carpetas USB (Árbol de Pendrives)");
+                tvCurrentPath.setText("Librería (Árbol de Pendrives)");
             }
 
             updateVisibleTreeNodes();
@@ -4719,6 +5179,18 @@ public class MainActivity extends Activity {
         btnFsPlay = layoutVideoFs.findViewById(R.id.btnFsPlay);
 
         layoutVideoFs.findViewById(R.id.btnFsExit).setOnClickListener(v -> setVideoFullscreen(false));
+        layoutVideoFs.findViewById(R.id.btnFsMenu).setOnClickListener(v -> showPlayerMenu(layoutVideoFs));
+        btnFsAudioOnly = layoutVideoFs.findViewById(R.id.btnFsAudioOnly);
+        tvFsAlert = layoutVideoFs.findViewById(R.id.tvFsAlert);
+        layoutFsAudioOnly = layoutVideoFs.findViewById(R.id.layoutFsAudioOnly);
+        btnFsAudioOnly.setOnClickListener(v -> {
+            setAudioOnly(!audioOnly);
+            scheduleFsHide();
+        });
+        updateAudioOnlyViews();
+        ivFsModeRepeat = layoutVideoFs.findViewById(R.id.ivFsModeRepeat);
+        ivFsModeShuffle = layoutVideoFs.findViewById(R.id.ivFsModeShuffle);
+        updateModeIndicators();
         btnFsPlay.setOnClickListener(v -> {
             togglePlayPause();
             scheduleFsHide();
@@ -5130,7 +5602,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Pone el aviso en la barra de arriba (en lugar del saludo) o vuelve al saludo si todo anda bien. */
+    private TextView tvVideoAlert, tvFsAlert; // carteles de aviso sobre el video y la pantalla completa
+
+    /** Muestra el aviso en un cartel sobre el video (y en la barra oculta) o lo quita si todo anda bien. */
     private void updateLoadMonitor() {
         if (tvHeaderPath == null) return;
         long now = SystemClock.uptimeMillis();
@@ -5175,6 +5649,15 @@ public class MainActivity extends Activity {
         tvHeaderPath.setText(shown);
         tvHeaderPath.setTextColor(text == null ? Color.parseColor("#38bdf8")
                 : Color.parseColor(severe ? "#ef4444" : "#f59e0b"));
+        // La barra de arriba está oculta: el aviso va en un cartel arriba al centro del video (y de la
+        // pantalla completa). Queda lo que dura el aviso (6 s) y no tapa los botones
+        for (TextView card : new TextView[]{tvVideoAlert, tvFsAlert}) {
+            if (card == null) continue;
+            card.setVisibility(text != null ? View.VISIBLE : View.GONE);
+            if (text == null) continue;
+            card.setText(text);
+            card.setTextColor(Color.parseColor(severe ? "#ef4444" : "#f59e0b"));
+        }
     }
 
     // Toques sobre el video: 1 toque y doble toque (280 ms, como la web).
@@ -5222,13 +5705,8 @@ public class MainActivity extends Activity {
     private void setVideoFullscreen(boolean on) {
         if (layoutVideoFs == null || on == isVideoFs) return;
         hideKeyboard();
-        View statusBar = findViewById(R.id.layoutCarStatusBar);
-        View divider = findViewById(R.id.viewStatusDivider);
         if (on) {
             isVideoFs = true;
-            // Sin la barra de arriba la tira de volumen ocupa todo el alto, como en la web
-            if (statusBar != null) statusBar.setVisibility(View.GONE);
-            if (divider != null) divider.setVisibility(View.GONE);
             layoutVideoFs.setVisibility(View.VISIBLE);
             layoutVideoFs.bringToFront();
             updateFsPlayState();
@@ -5242,13 +5720,12 @@ public class MainActivity extends Activity {
             applyVideoSurface();
         } else {
             isVideoFs = false;
+            if (playerMenuPopup != null) playerMenuPopup.dismiss();
             handler.removeCallbacks(hideFsControlsRunnable);
             handler.removeCallbacks(videoSingleTapRunnable);
             // Primero el video vuelve al reproductor y después se quita la pantalla completa
             applyVideoSurface();
             layoutVideoFs.setVisibility(View.GONE);
-            if (statusBar != null) statusBar.setVisibility(View.VISIBLE);
-            if (divider != null) divider.setVisibility(View.VISIBLE);
         }
         setImmersiveMode();
     }

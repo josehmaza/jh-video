@@ -220,7 +220,7 @@ body {
 .dashboard-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 54px 1.18fr 1fr; /* Col 1: Vol (54px), Col 2: Explorador (ahora a la izquierda), Col 3: Reproductor (derecha) */
+  grid-template-columns: 72px 1.18fr 1fr; /* Col 1: Vol (72px), Col 2: Explorador (ahora a la izquierda), Col 3: Reproductor (derecha) */
   overflow: hidden;
   position: relative;
   transition: grid-template-columns 0.3s ease;
@@ -228,7 +228,7 @@ body {
 
 /* Modo Reproductor Expandido / Pantalla Completa (Explorador colapsado a la izquierda) */
 .dashboard-grid.is-expanded {
-  grid-template-columns: 54px 1fr;
+  grid-template-columns: 72px 1fr;
 }
 
 .dashboard-grid.is-expanded .explorer-panel,
@@ -247,8 +247,9 @@ body {
   height: 100%;
 }
 
+/* Sin ancho máximo: los controles llegan a los bordes. Título, tarjetas y barra tienen el suyo (540-560px) */
 .dashboard-grid.is-expanded .now-playing-card {
-  max-width: 560px;
+  max-width: none;
   gap: 4px;
   flex: 1;
   justify-content: space-evenly;
@@ -262,6 +263,7 @@ body {
 
 .dashboard-grid.is-expanded .track-meta {
   margin-top: 0;
+  max-width: 560px;
 }
 
 .dashboard-grid.is-expanded .track-title {
@@ -284,8 +286,9 @@ body {
   margin-top: 4px;
 }
 
+/* La fila de controles usa todo el ancho: anterior / siguiente responden hasta los bordes del reproductor */
 .dashboard-grid.is-expanded .playback-controls {
-  max-width: 420px;
+  max-width: none;
   width: 100%;
   margin-top: 2px;
   margin-bottom: 2px;
@@ -295,16 +298,6 @@ body {
 .dashboard-grid.is-expanded .btn-play-main {
   width: 62px;
   height: 62px;
-}
-
-.dashboard-grid.is-expanded .btn-nav {
-  width: 48px;
-  height: 48px;
-}
-
-.dashboard-grid.is-expanded .btn-ctrl.btn-secondary {
-  width: 42px;
-  height: 42px;
 }
 
 /* ================= COLUMNA 1: TIRA LATERAL ULTRA-SLIM (54px) ================= */
@@ -341,8 +334,8 @@ body {
 
 /* Botón Atrás Táctil Conductor (Misma función que el botón físico para visión nocturna) */
 .btn-driver-back {
-  width: 42px;
-  height: 40px;
+  width: 60px;
+  height: 52px;
   background: #181d26;
   border: 1.5px solid var(--border-light);
   border-radius: 10px;
@@ -369,14 +362,14 @@ body {
 }
 
 .btn-driver-back svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 /* Botones Compactos de Volumen (Solo iconos limpios) */
 .btn-driver-vol {
-  width: 42px;
-  height: 40px;
+  width: 60px;
+  height: 52px;
   background: #1c212b;
   border: 1.5px solid #2d3444;
   border-radius: 10px;
@@ -401,8 +394,8 @@ body {
 }
 
 .btn-driver-vol svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 /* Barra Vertical Táctil de Nivel (Ocupa hasta abajo del término de la pantalla) */
@@ -420,7 +413,7 @@ body {
 }
 
 .vol-meter-track {
-  width: 12px;
+  width: 16px;
   height: 100%;
   background: #11141a;
   border-radius: 6px;
@@ -1163,24 +1156,6 @@ body {
   transform: scale(0.92);
 }
 
-.btn-secondary {
-  width: 46px;
-  height: 46px;
-  color: var(--text-secondary);
-}
-
-.btn-secondary.active {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  background: rgba(56, 189, 248, 0.1);
-  box-shadow: 0 0 14px var(--accent-blue-glow);
-}
-
-.btn-secondary svg {
-  width: 18px;
-  height: 18px;
-}
-
 .btn-nav {
   width: 54px;
   height: 54px;
@@ -1319,11 +1294,6 @@ body {
 
 .tab-btn.active .tab-icon {
   stroke: #0c0e12;
-}
-
-.tab-btn.active #songCount {
-  color: #0c0e12;
-  font-weight: 800;
 }
 
 .tab-icon {
@@ -1860,12 +1830,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 62px;
+  min-height: 76px;
   background: #141822;
   border: 1px solid #232b3a;
   border-radius: 12px;
   padding: 8px 12px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
@@ -1908,8 +1878,8 @@ body {
 }
 
 .tree-toggle-arrow {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1929,8 +1899,8 @@ body {
 }
 
 .tree-node-icon {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 9px;
   background: rgba(56, 189, 248, 0.12);
   border: 1.5px solid rgba(56, 189, 248, 0.35);
@@ -1956,8 +1926,9 @@ body {
   margin-right: 12px;
 }
 
+/* Nombre de carpeta grande para leerlo manejando */
 .tree-node-title {
-  font-size: 1.08rem;
+  font-size: 1.32rem;
   font-weight: 700;
   color: #f8fafc;
   white-space: nowrap;
@@ -1988,8 +1959,9 @@ body {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   border: 1.5px solid #38bdf8;
   color: #ffffff;
-  padding: 6px 14px;
-  min-width: 72px;
+  min-height: 46px;
+  padding: 6px 16px;
+  min-width: 80px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.18s ease;
@@ -2010,8 +1982,8 @@ body {
 }
 
 .btn-folder-play .play-circle {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: #ffffff;
   border-radius: 50%;
   display: flex;
@@ -2021,14 +1993,14 @@ body {
 }
 
 .btn-folder-play .play-circle svg {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   fill: #0369a1;
   margin-left: 2px;
 }
 
 .btn-folder-play .track-count-num {
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
@@ -2332,8 +2304,8 @@ body {
 
 /* + de una carpeta, al lado de [N ▶] */
 .btn-folder-addmix {
-  width: 38px;
-  height: 36px;
+  width: 52px;
+  height: 48px;
   border-radius: 10px;
   background: #151922;
   border: 1.5px solid #38bdf8;
@@ -2348,8 +2320,8 @@ body {
 }
 
 .btn-folder-addmix svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 
 .btn-folder-addmix:active {
@@ -2659,55 +2631,68 @@ body {
   margin-top: 2px;
 }
 
-.btn-ctrl,
-.btn-secondary,
-.btn-nav {
+.btn-ctrl {
   background: transparent;
   border: none;
   box-shadow: none;
   color: #ffffff;
 }
 
-.btn-nav {
-  width: 64px;
-  height: 64px;
+/* Anterior / siguiente para el auto: se ven como íconos blancos sueltos (sin caja), pero cada uno
+   responde en todo el ancho que deja el play */
+.btn-nav,
+.btn-ctrl.btn-nav {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 76px;
+  border-radius: 18px;
+  background: transparent;
+  border: none;
+  transition: background 0.12s;
 }
 
 .btn-nav svg {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
 }
 
-.btn-secondary {
-  width: 56px;
-  height: 56px;
-  color: rgba(255, 255, 255, 0.85);
-  position: relative;
-}
-
-.btn-secondary svg {
-  width: 28px;
-  height: 28px;
-}
-
-/* Aleatorio / Repetir activos: cian y un punto debajo (se distingue de un vistazo) */
-.btn-secondary.active {
+.btn-ctrl.btn-nav:hover {
   background: transparent;
-  border: none;
-  box-shadow: none;
-  color: #38bdf8;
 }
 
-.btn-secondary.active::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  margin-left: -3px;
+/* El ícono va pegado hacia el play (a 48px; 72px con el explorador oculto); el resto de la zona,
+   hasta el borde del reproductor, también responde */
+#btnPrev {
+  justify-content: flex-end;
+  padding: 0 48px 0 0;
+}
+
+#btnNext {
+  justify-content: flex-start;
+  padding: 0 0 0 48px;
+}
+
+.dashboard-grid.is-expanded #btnPrev {
+  padding-right: 72px;
+}
+
+.dashboard-grid.is-expanded #btnNext {
+  padding-left: 72px;
+}
+
+/* Al tocar se ilumina solo el botón: un círculo cian detrás del ícono (no toda la zona) */
+.btn-ctrl.btn-nav:active,
+.btn-ctrl.btn-nav.pressed {
+  background: transparent;
+  transform: none;
+}
+
+.btn-ctrl.btn-nav:active svg,
+.btn-ctrl.btn-nav.pressed svg {
   border-radius: 50%;
-  background: #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  box-shadow: 0 0 0 12px rgba(56, 189, 248, 0.18);
 }
 
 .btn-play-main {
@@ -2739,18 +2724,22 @@ body {
 
 /* Reproductor a pantalla completa: misma escala, un poco más grande */
 .dashboard-grid.is-expanded .btn-play-main {
-  width: 88px;
-  height: 88px;
+  width: 100px;
+  height: 100px;
+}
+
+.dashboard-grid.is-expanded .btn-play-main svg {
+  width: 44px;
+  height: 44px;
 }
 
 .dashboard-grid.is-expanded .btn-nav {
-  width: 66px;
-  height: 66px;
+  height: 88px;
 }
 
-.dashboard-grid.is-expanded .btn-ctrl.btn-secondary {
-  width: 58px;
-  height: 58px;
+.dashboard-grid.is-expanded .btn-nav svg {
+  width: 56px;
+  height: 56px;
 }
 
 /* Artista y álbum en una sola línea: un artista largo ya no empuja los controles fuera de la pantalla */
@@ -2782,33 +2771,22 @@ body {
 }
 
 .dashboard-grid:not(.is-expanded) .btn-play-main {
-  width: 76px;
-  height: 76px;
+  width: 88px;
+  height: 88px;
 }
 
 .dashboard-grid:not(.is-expanded) .btn-play-main svg {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
 }
 
 .dashboard-grid:not(.is-expanded) .btn-nav {
-  width: 58px;
-  height: 58px;
+  height: 76px;
 }
 
 .dashboard-grid:not(.is-expanded) .btn-nav svg {
-  width: 36px;
-  height: 36px;
-}
-
-.dashboard-grid:not(.is-expanded) .btn-secondary {
-  width: 52px;
-  height: 52px;
-}
-
-.dashboard-grid:not(.is-expanded) .btn-secondary svg {
-  width: 26px;
-  height: 26px;
+  width: 50px;
+  height: 50px;
 }
 
 /* Resplandor de la carátula con el color de la canción (decorativo: no afecta la lectura) */
@@ -2852,6 +2830,122 @@ body {
 
 .btn-toggle-expand.btn-automix:hover {
   border-color: rgba(56, 189, 248, 0.6);
+}
+
+/* Menú ☰: mismo cuadro que Automix, en blanco */
+.btn-toggle-expand.btn-player-menu {
+  width: 56px;
+  height: 52px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #e2e8f0;
+  box-shadow: none;
+}
+
+.btn-toggle-expand.btn-player-menu svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Panel del menú: sobre el reproductor, con filas altas para tocar manejando */
+.player-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.player-menu {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  z-index: 31;
+  padding: 12px;
+  border-radius: 16px;
+  background: #0e141c;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.player-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding-left: 4px;
+}
+
+.player-menu-close {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.player-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 72px;
+  margin-top: 8px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.player-menu-row svg {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+
+.player-menu-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-menu-text b {
+  display: block;
+  font-size: 1.12rem;
+}
+
+.player-menu-text small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.player-menu-state {
+  min-width: 58px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-align: center;
+}
+
+.player-menu-row.is-on {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.7);
+  color: #38bdf8;
+}
+
+.player-menu-row.is-on .player-menu-state {
+  background: #38bdf8;
+  color: #04121c;
 }
 
 /* Reproducir de Mi Mix: solo el ▶, cuadrado, para que el resumen entre completo */
@@ -3166,7 +3260,7 @@ body {
    menos la tira de volumen de la izquierda, porque el auto no tiene botones físicos */
 .screen-frame-wrapper.is-video-fs .album-art-container.video-frame {
   position: absolute;
-  inset: 0 0 0 54px;
+  inset: 0 0 0 72px;
   width: auto;
   height: auto;
   aspect-ratio: auto;
@@ -3186,7 +3280,7 @@ body {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 54px;
+  width: 72px;
   z-index: 101;
   border-radius: 14px 0 0 14px;
   background: #0b0d11;
@@ -3239,14 +3333,15 @@ body {
 
 .fs-top {
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
 }
 
 .fs-bottom {
   flex-direction: column;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
-  padding-top: 40px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.55) 70%, transparent 100%);
+  padding: 14px 0 6px 0;
+  gap: 4px;
 }
 
 .fs-title {
@@ -3259,10 +3354,10 @@ body {
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
-.fs-btn {
-  width: 64px;
-  height: 56px;
-  border-radius: 14px;
+.fs-top .fs-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(10, 14, 22, 0.6);
   color: #f1f5f9;
@@ -3273,28 +3368,15 @@ body {
   flex-shrink: 0;
 }
 
-.fs-btn svg {
-  width: 30px;
-  height: 30px;
-}
-
-.fs-btn.fs-play {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  color: #0b0d11;
-  border: 0;
-}
-
-.fs-btn.fs-play svg {
-  width: 36px;
-  height: 36px;
+.fs-top .fs-btn svg {
+  width: 24px;
+  height: 24px;
 }
 
 /* Zona de toque de 34 px de alto (fácil de acertar con el dedo); la barra que se ve mide 8 px */
 .fs-progress {
   height: 34px;
+  margin: 0 24px;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -3329,10 +3411,12 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
-.fs-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+.fs-info-row {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  width: 100%;
 }
 
 .fs-time {
@@ -3342,17 +3426,101 @@ body {
   color: #e2e8f0;
 }
 
-.fs-ctrls {
-  display: flex;
-  align-items: center;
-  gap: 26px;
-}
-
 .fs-hint {
-  justify-self: end;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.6);
 }
+
+/* Controles de pantalla completa: idénticos a JH MUSIC
+   Íconos blancos sin caja; anterior y siguiente ocupan todo el ancho que deja el play hasta el límite */
+.fs-ctrls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0;
+  margin-top: 2px;
+}
+
+.fs-btn.fs-nav {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 84px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+#fsPrev {
+  justify-content: flex-end;
+  padding-right: 48px;
+}
+
+#fsNext {
+  justify-content: flex-start;
+  padding-left: 48px;
+}
+
+.fs-btn.fs-nav svg {
+  width: 50px;
+  height: 50px;
+  transition: all 0.12s ease;
+}
+
+.fs-btn.fs-nav:hover {
+  background: transparent;
+}
+
+.fs-btn.fs-nav:active,
+.fs-btn.fs-nav.pressed {
+  background: transparent;
+  transform: none;
+}
+
+.fs-btn.fs-nav:active svg,
+.fs-btn.fs-nav.pressed svg {
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.18);
+  box-shadow: 0 0 0 12px rgba(56, 189, 248, 0.18);
+}
+
+.fs-btn.fs-play {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0c0e12;
+  border: none;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fs-btn.fs-play:hover {
+  background: #ffffff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.fs-btn.fs-play:active {
+  transform: scale(0.94);
+}
+
+.fs-btn.fs-play svg {
+  width: 40px;
+  height: 40px;
+}
+
 
 /* Video de borde a borde en el reproductor (sin el espacio de alrededor) y con esquinas rectas.
    Sin marco no hay dónde girar el borde láser, así que no se muestra */
@@ -3388,4 +3556,451 @@ body {
 .screen-frame-wrapper.is-video-fs .album-art-container.video-frame:active {
   transform: none;
   box-shadow: none;
+}
+
+/* ==========================================================================
+   HUD FLOTANTE DE VOLUMEN (GESTOS CIEGOS EN AUTO)
+   ========================================================================== */
+.blind-volume-hud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  background: rgba(13, 17, 23, 0.94);
+  border: 2px solid rgba(56, 189, 248, 0.55);
+  border-radius: 22px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.85), 0 0 35px rgba(56, 189, 248, 0.28);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-width: 130px;
+}
+
+.blind-volume-hud.is-visible,
+.blind-volume-hud.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.blind-hud-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+}
+
+.blind-hud-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.blind-hud-bar-wrap {
+  width: 22px;
+  height: 140px;
+  background: #11141a;
+  border: 1.5px solid #283244;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.blind-hud-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #60a5fa 0%, #38bdf8 100%);
+  border-radius: 10px;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
+  transition: height 0.05s linear;
+}
+
+.blind-hud-percent {
+  font-family: var(--font-mono, monospace);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  letter-spacing: -1px;
+}
+
+/* ==========================================================================
+   JH VIDEO 1.1.0 (igual que la app): carpetas, botones sobre el video, solo audio y menú ☰
+   ========================================================================== */
+/* Fila de carpeta recién tocada: se enciende en cian un instante (más fuerte que la carpeta activa) */
+.tree-node-item.is-tapped {
+  background: rgba(56, 189, 248, 0.35) !important;
+  border-color: #38bdf8 !important;
+}
+
+/* Play tocado desde su zona: un poco gris un instante, como al presionarlo */
+.btn-ctrl.btn-play-main.pressed {
+  background: #d9dee6;
+}
+
+/* Botones que flotan sobre el video: semitransparentes para tapar lo mínimo */
+.video-float-btn {
+  position: absolute;
+  top: 10px;
+  z-index: 3;
+  width: 52px;
+  height: 48px;
+  padding: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.video-float-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.video-float-btn:active {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.video-menu-btn {
+  right: 10px;
+}
+
+.video-bulb-btn {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Foco: encendido (la imagen se ve) o tachado y en cian (solo audio) */
+.video-bulb-btn .bulb-off,
+.fs-bulb .bulb-off,
+.video-bulb-btn.is-on .bulb-on,
+.fs-bulb.is-on .bulb-on {
+  display: none;
+}
+
+.video-bulb-btn.is-on .bulb-off,
+.fs-bulb.is-on .bulb-off {
+  display: block;
+}
+
+.video-bulb-btn.is-on,
+.fs-bulb.is-on {
+  color: #38bdf8;
+}
+
+/* Indicadores de repetir y aleatorio encendidos: arriba a la izquierda del video, sin recibir toques */
+.video-modes {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.video-mode-icon {
+  display: flex;
+  color: #38bdf8;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.video-mode-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Solo audio: negro sobre el video con un "Solo audio" muy tenue; los toques pasan al video */
+.audio-only-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+/* En pantalla completa los botones sobre el video dan lugar a los de la pantalla completa */
+.screen-frame-wrapper.is-video-fs .video-float-btn,
+.screen-frame-wrapper.is-video-fs .video-modes {
+  display: none;
+}
+
+/* Pantalla completa: título | foco al centro | ☰ y salir; indicadores debajo del título */
+.fs-top .fs-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.fs-top-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.fs-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 20px 0;
+}
+
+.fs-modes .video-mode-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Capa del menú ☰: el código la ubica encima del reproductor o de la pantalla completa */
+.player-menu-layer {
+  position: absolute;
+  z-index: 200;
+}
+
+/* ==========================================================================
+   OPCIÓN C2 (igual que la app): sin barra de arriba; reloj grande en la tira de volumen.
+   Re-escanear USB y la versión pasan al menú ☰
+   ========================================================================== */
+.car-status-bar {
+  display: none !important;
+}
+
+.strip-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.strip-clock-num {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: #f8fafc;
+}
+
+.strip-usb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.strip-usb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.strip-usb-dot.off {
+  background: #475569;
+  box-shadow: none;
+}
+
+.player-menu-version {
+  margin-top: 10px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ==========================================================================
+   Pantalla del radio (1024x600): número de las pestañas en una etiqueta chica y
+   filas de carpeta "opción B" (nombre en 1 renglón, sin la línea de cantidad,
+   filas de 60, + y ▶ cuadrados).
+   ========================================================================== */
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+.tab-btn.active .tab-count {
+  background: rgba(12, 14, 18, 0.2);
+  color: #0c0e12;
+}
+
+.tree-node-item {
+  min-width: 0;
+  min-height: 60px;
+  padding: 4px 8px 4px 4px;
+}
+
+.tree-node-left {
+  gap: 4px;
+}
+
+.tree-toggle-arrow {
+  width: 24px;
+}
+
+.tree-node-info {
+  margin-left: 4px;
+  margin-right: 6px;
+}
+
+.tree-node-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La carpeta tocada por última vez muestra el nombre completo, en hasta 2 renglones */
+.tree-node-item.show-full-title .tree-node-title {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  line-height: 1.18;
+}
+
+/* Ícono de carpeta dentro del nombre, del alto del texto, como una letra más */
+.tree-folder-glyph {
+  width: 0.95em;
+  height: 0.95em;
+  vertical-align: -0.12em;
+  margin-right: 0.3em;
+  color: var(--accent-blue);
+}
+
+.tree-node-item .btn-folder-addmix {
+  width: 46px;
+  height: 46px;
+}
+
+.btn-folder-play.is-square {
+  width: 52px;
+  min-width: 52px;
+  min-height: 48px;
+  height: 48px;
+  padding: 0;
+}
+
+.btn-folder-play.is-square .play-circle {
+  width: 30px;
+  height: 30px;
+}
+
+/* Colores de las carpetas: la que suena no se pinta (lleva un ecualizador en su botón ▶);
+   la tocada solo destella; la abierta en la pestaña de canciones, si no suena, solo borde fino */
+.tree-node-item.is-playing-folder {
+  background: rgba(10, 12, 17, 0.5);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+.tree-node-item.is-active-folder {
+  background: rgba(10, 12, 17, 0.5);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: none;
+}
+
+
+/* Título y artista con alto fijo: una canción con letras de otra fuente (más altas) agrandaba
+   la línea y movía hacia abajo anterior / play / siguiente */
+.track-meta .marquee-wrapper {
+  height: 2.3rem;
+  line-height: 2.3rem;
+}
+
+.track-meta .track-title {
+  margin-bottom: 0;
+  line-height: inherit;
+}
+
+.track-details {
+  height: 26px;
+  overflow: hidden;
+}
+
+/* Ícono de carpeta fijo (no se desliza con el nombre), del alto del texto */
+.tree-fixed-glyph {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.tree-fixed-glyph .tree-folder-glyph {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+/* Botón ▶ de la carpeta que suena: ecualizador blanco, se mueve mientras suena y queda quieto en pausa */
+.folder-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+
+.folder-eq i {
+  display: block;
+  width: 5px;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.folder-eq i:nth-child(1) { height: 45%; }
+.folder-eq i:nth-child(2) { height: 80%; }
+.folder-eq i:nth-child(3) { height: 55%; }
+
+body.is-playing .folder-eq i {
+  animation: folder-eq 0.9s ease-in-out infinite;
+}
+
+body.is-playing .folder-eq i:nth-child(2) { animation-delay: -0.3s; }
+body.is-playing .folder-eq i:nth-child(3) { animation-delay: -0.6s; }
+
+@keyframes folder-eq {
+  0%, 100% { height: 25%; }
+  50% { height: 100%; }
 }

@@ -8,13 +8,15 @@
     android:background="@color/bg_root">
 
     <!-- ======================================================== -->
-    <!-- BARRA SUPERIOR DE ESTADO DEL VEHÍCULO (38dp)              -->
-    <!-- Marca, ruta USB actual, reloj central y re-escaneo USB    -->
+    <!-- BARRA SUPERIOR: OCULTA (opción C2). El reloj va en la     -->
+    <!-- tira de volumen, Re-escanear USB y la versión en el menú ☰ -->
+    <!-- Se conserva oculta: el código compartido la sigue usando  -->
     <!-- ======================================================== -->
     <LinearLayout
         android:id="@+id/layoutCarStatusBar"
         android:layout_width="match_parent"
         android:layout_height="38dp"
+        android:visibility="gone"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="12dp"
@@ -53,7 +55,7 @@
                 android:paddingEnd="7dp"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:text="v2.7.0"
+                android:text="v1.1.1"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -105,6 +107,7 @@
     <!-- Línea divisoria sutil -->
     <View
         android:id="@+id/viewStatusDivider"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#0fffffff" />
@@ -120,11 +123,11 @@
         android:orientation="horizontal">
 
         <!-- ======================================================== -->
-        <!-- COLUMNA 1: FRANJA DE VOLUMEN CONDUCTOR (54dp)            -->
+        <!-- COLUMNA 1: FRANJA DE VOLUMEN CONDUCTOR (72dp)            -->
         <!-- ======================================================== -->
         <LinearLayout
             android:id="@+id/layoutVolumeStrip"
-            android:layout_width="54dp"
+            android:layout_width="72dp"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_horizontal"
@@ -132,11 +135,60 @@
             android:paddingBottom="2dp"
             android:background="@drawable/bg_volume_strip">
 
+            <!-- Reloj grande en dos líneas (horas arriba, minutos abajo) y el punto del pendrive: verde si hay uno
+                 conectado, gris si no. La barra de arriba ya no está (opción C2). Solo se lee, no se toca -->
+            <TextView
+                android:id="@+id/tvStripClockHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:includeFontPadding="false"
+                android:text="00"
+                android:textColor="@color/text_primary"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvStripClockMin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="monospace"
+                android:includeFontPadding="false"
+                android:text="00"
+                android:textColor="@color/text_primary"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/viewUsbDot"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:background="@drawable/bg_usb_dot" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="USB"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- Botón HOME Táctil (Mismo comportamiento que el botón físico HOME del auto) -->
             <ImageButton
                 android:id="@+id/btnNavHome"
-                android:layout_width="44dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="52dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_btn_action"
                 android:src="@drawable/ic_nav_home"
@@ -145,25 +197,25 @@
             <!-- Botón Silencio (Mute) -->
             <ImageButton
                 android:id="@+id/btnVolMute"
-                android:layout_width="44dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="52dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_btn_mute"
                 android:src="@drawable/ic_vol_on"
                 android:scaleType="fitCenter"
-                android:padding="11dp"
+                android:padding="13dp"
                 android:contentDescription="Mute" />
 
             <!-- Botón Subir (+) -->
             <Button
                 android:id="@+id/btnVolUp"
-                android:layout_width="44dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="52dp"
                 android:layout_marginBottom="4dp"
                 android:background="@drawable/bg_btn_action"
                 android:text="+"
                 android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <!-- Porcentaje de Volumen (En medio de + y -) -->
@@ -175,25 +227,25 @@
                 android:layout_marginBottom="4dp"
                 android:text="75%"
                 android:textColor="@color/accent_cyan"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <!-- Botón Bajar (-) -->
             <Button
                 android:id="@+id/btnVolDown"
-                android:layout_width="44dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="52dp"
                 android:layout_marginBottom="14dp"
                 android:background="@drawable/bg_btn_action"
                 android:text="-"
                 android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <!-- Barra Deslizante Vertical Táctil Ergonómica (Abajo de + y -, ocupando hasta el fondo de la pantalla) -->
             <com.jh.carvideo.VerticalVolumeBar
                 android:id="@+id/seekVolume"
-                android:layout_width="44dp"
+                android:layout_width="60dp"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:layout_marginBottom="2dp" />
@@ -232,7 +284,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:background="@drawable/bg_tab_selected"
-                        android:text="Carpetas USB"
+                        android:text="Librería"
                         android:textColor="@color/accent_cyan"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -244,7 +296,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:background="@drawable/bg_tab_unselected"
-                        android:text="Videos (0)"
+                        android:text="Videos"
                         android:textColor="@color/text_secondary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -256,7 +308,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:background="@drawable/bg_tab_unselected"
-                        android:text="Mi Lista (0)"
+                        android:text="Mi Lista"
                         android:textColor="@color/text_secondary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -805,6 +857,102 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:visibility="gone" />
+
+                        <!-- Solo audio: tapa la imagen en negro (no encandila de noche); el audio sigue. Encima, un "Solo audio"
+                             muy tenue para saber por qué está negro. No recibe toques: pasan al video -->
+                        <FrameLayout
+                            android:id="@+id/layoutAudioOnly"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#000000"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="Solo audio"
+                                android:textColor="#33ffffff"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <!-- Indicadores de repetir y aleatorio encendidos (arriba a la izquierda del video). No se tocan:
+                             los toques pasan al video (doble toque = pantalla completa) -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|start"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:id="@+id/ivModeRepeat"
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_ctrl_repeat"
+                                android:tint="@color/accent_cyan"
+                                android:visibility="gone"
+                                android:contentDescription="Repetir video encendido" />
+
+                            <ImageView
+                                android:id="@+id/ivModeShuffle"
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:layout_marginTop="8dp"
+                                android:src="@drawable/ic_ctrl_shuffle"
+                                android:tint="@color/accent_cyan"
+                                android:visibility="gone"
+                                android:contentDescription="Aleatorio encendido" />
+                        </LinearLayout>
+
+                        <!-- Menú ☰ (aleatorio y repetir): flota semitransparente arriba a la derecha del video -->
+                        <ImageButton
+                            android:id="@+id/btnVideoMenu"
+                            android:layout_width="52dp"
+                            android:layout_height="48dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginEnd="10dp"
+                            android:background="@drawable/bg_video_menu_btn"
+                            android:src="@drawable/ic_menu"
+                            android:scaleType="center"
+                            android:contentDescription="Opciones de reproducción" />
+
+                        <!-- Solo audio (foco): arriba al centro del video, mismo cuadro que el ☰ -->
+                        <ImageButton
+                            android:id="@+id/btnAudioOnly"
+                            android:layout_width="52dp"
+                            android:layout_height="48dp"
+                            android:layout_gravity="top|center_horizontal"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_video_menu_btn"
+                            android:src="@drawable/ic_bulb"
+                            android:scaleType="center"
+                            android:contentDescription="Solo audio: imagen en negro" />
+
+                        <!-- Aviso del monitor (antes en la barra de arriba): cartel oscuro arriba al centro, debajo del foco y del ☰.
+                             Texto naranja, rojo si es grave; dura lo que el aviso (6 s). No recibe toques -->
+                        <TextView
+                            android:id="@+id/tvVideoAlert"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|center_horizontal"
+                            android:layout_marginTop="66dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/bg_video_alert"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:singleLine="true"
+                            android:ellipsize="end"
+                            android:textColor="#f59e0b"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
                     </FrameLayout>
                 </com.jh.carvideo.VideoFrameLayout>
 
@@ -862,7 +1010,8 @@
                 <com.jh.carvideo.CarMarqueeTextView
                     android:id="@+id/tvTrackTitle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
+                    android:includeFontPadding="false"
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:singleLine="true"
@@ -932,7 +1081,7 @@
                         android:gravity="center_vertical"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?android:attr/selectableItemBackground">
+                        android:background="@drawable/bg_pressed_cyan">
 
                         <ImageView
                             android:layout_width="26dp"
@@ -972,7 +1121,7 @@
                         android:gravity="center_vertical"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?android:attr/selectableItemBackground">
+                        android:background="@drawable/bg_pressed_cyan">
 
                         <com.jh.carvideo.CarMarqueeTextView
                             android:id="@+id/tvNextTrackPreview"
@@ -1058,7 +1207,7 @@
                     </RelativeLayout>
                 </LinearLayout>
 
-                <!-- Controles de Transporte (Botones táctiles grandes ampliados) -->
+                <!-- Controles de Transporte: anterior · play · siguiente -->
                 <LinearLayout
                     android:id="@+id/layoutTransportControls"
                     android:layout_width="match_parent"
@@ -1068,69 +1217,48 @@
                     android:gravity="center"
                     android:layout_marginTop="4dp">
 
-                    <!-- Estilo YouTube Music (igual que la web): íconos blancos sin caja y play/pausa en un
-                         círculo blanco grande. Tamaños con el explorador abierto; con el explorador oculto
-                         el código los agranda (88 / 66 / 58dp, como la web) -->
+                    <!-- Para el auto (igual que JH MUSIC): anterior · play · siguiente. Íconos blancos sin caja; al tocar se
+                         ilumina un círculo cian detrás del ícono. Responden en toda la franja de abajo del reproductor,
+                         a cada lado del play, hasta el borde de la pantalla (handleNavZoneTouch).
+                         Aleatorio y repetir están en el menú ☰ sobre el video -->
 
-                    <!-- Aleatorio: activo en cian con un puntito debajo (el fondo lo pone el código) -->
-                    <ImageButton
-                        android:id="@+id/btnShuffle"
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/ic_ctrl_shuffle"
-                        android:scaleType="fitCenter"
-                        android:padding="13dp"
-                        android:contentDescription="Aleatorio" />
-
-                    <!-- Pista Anterior -->
+                    <!-- Video Anterior -->
                     <ImageButton
                         android:id="@+id/btnPrev"
-                        android:layout_width="58dp"
-                        android:layout_height="58dp"
-                        android:layout_marginStart="12dp"
-                        android:background="@drawable/bg_ctrl_flat"
+                        android:layout_width="74dp"
+                        android:layout_height="74dp"
+                        android:layout_marginEnd="24dp"
+                        android:background="@drawable/bg_ctrl_icon"
                         android:src="@drawable/ic_ctrl_prev"
                         android:scaleType="fitCenter"
-                        android:padding="11dp"
+                        android:padding="12dp"
                         android:contentDescription="Anterior" />
 
-                    <!-- Play / Pausa: círculo blanco de 76dp con el ícono oscuro -->
+                    <!-- Play / Pausa: círculo blanco de 88dp con el ícono oscuro -->
                     <ImageButton
                         android:id="@+id/btnPlayPause"
-                        android:layout_width="76dp"
-                        android:layout_height="76dp"
+                        android:layout_width="88dp"
+                        android:layout_height="88dp"
                         android:layout_marginStart="12dp"
                         android:layout_marginEnd="12dp"
                         android:background="@drawable/bg_ctrl_play"
                         android:elevation="6dp"
                         android:src="@drawable/ic_ctrl_play"
                         android:scaleType="fitCenter"
-                        android:padding="21dp"
+                        android:padding="24dp"
                         android:contentDescription="Play/Pause" />
 
-                    <!-- Siguiente Pista -->
+                    <!-- Video Siguiente -->
                     <ImageButton
                         android:id="@+id/btnNext"
-                        android:layout_width="58dp"
-                        android:layout_height="58dp"
-                        android:layout_marginEnd="12dp"
-                        android:background="@drawable/bg_ctrl_flat"
+                        android:layout_width="74dp"
+                        android:layout_height="74dp"
+                        android:layout_marginStart="24dp"
+                        android:background="@drawable/bg_ctrl_icon"
                         android:src="@drawable/ic_ctrl_next"
                         android:scaleType="fitCenter"
-                        android:padding="11dp"
+                        android:padding="12dp"
                         android:contentDescription="Siguiente" />
-
-                    <!-- Repetir: activo en cian con un puntito debajo -->
-                    <ImageButton
-                        android:id="@+id/btnRepeat"
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/ic_ctrl_repeat"
-                        android:scaleType="fitCenter"
-                        android:padding="13dp"
-                        android:contentDescription="Repetir" />
                 </LinearLayout>
 
             </LinearLayout>

@@ -19,7 +19,7 @@
     <header class="car-status-bar">
       <div class="status-left">
         <span class="brand-badge"><span class="dot"></span> HYUNDAI TUCSON IX</span>
-        <span class="version-badge" id="appVersionBadge">JH VIDEO v1.0.0</span>
+        <span class="version-badge" id="appVersionBadge">JH VIDEO v1.1.1</span>
         <span class="source-badge" id="sourceBadge">
           <span id="currentPathLabel">Q hubo jefe 😉</span>
         </span>
@@ -45,6 +45,13 @@
 
       <!-- COLUMNA 1: TIRA LATERAL DEL CONDUCTOR ULTRA-SLIM (54px) -->
       <aside class="driver-volume-strip">
+        <!-- Reloj grande en dos líneas (horas y minutos) y el punto del pendrive. La barra de arriba ya no está
+             (opción C2, igual que la app). Solo se lee, no se toca -->
+        <div class="strip-clock">
+          <span class="strip-clock-num" id="stripClockH">00</span>
+          <span class="strip-clock-num" id="stripClockM">00</span>
+          <span class="strip-usb"><span class="strip-usb-dot" id="stripUsbDot"></span>USB</span>
+        </div>
         <!-- 0. Botón HOME Táctil de Pantalla (Misma función que el botón físico HOME del auto) -->
         <button class="btn-driver-back" id="btnNavHome" title="Inicio / Home (Botón físico en pantalla)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -92,16 +99,18 @@
             <div class="browser-tabs">
               <button class="tab-btn active" data-tab="folders">
                 <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                <span>Carpetas USB</span>
+                <span>Librería</span>
               </button>
               <button class="tab-btn" data-tab="playlist">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                <span>Videos (<span id="songCount">0</span>)</span>
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor" stroke="none"/></svg>
+                <span>Videos</span>
+                <b class="tab-count" id="songCount">0</b>
               </button>
               <!-- Mi Lista: lista de videos que armas con + y se reproduce entera, en orden -->
               <button class="tab-btn" data-tab="mymix">
                 <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="14" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><line x1="18" y1="13" x2="18" y2="21"/><line x1="14" y1="17" x2="22" y2="17"/></svg>
-                <span>Mi Lista (<span id="mixCount">0</span>)</span>
+                <span>Mi Lista</span>
+                <b class="tab-count" id="mixCount">0</b>
                 <!-- Punto cian que late mientras se reproduce Mi Lista (quieto en pausa) -->
                 <span class="tab-live-dot hidden" id="mixLiveDot"></span>
               </button>
@@ -239,24 +248,49 @@
                 <svg class="vinyl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/></svg>
               </div>
 
-              <!-- Pantalla completa: barra de arriba (título y salir) y de abajo (tiempo y controles) -->
+              <!-- Solo audio: tapa la imagen en negro (no encandila de noche); el audio sigue. "Solo audio" muy tenue -->
+              <div class="audio-only-cover hidden" id="audioOnlyCover">Solo audio</div>
+
+              <!-- Indicadores de repetir y aleatorio encendidos (no se tocan: los toques pasan al video) -->
+              <div class="video-modes">
+                <span class="video-mode-icon hidden" data-mode-icon="repeat" title="Repetir video: ON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 20 5 17 8"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><polyline points="7 22 4 19 7 16"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></span>
+                <span class="video-mode-icon hidden" data-mode-icon="shuffle" title="Aleatorio: ON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2.6c1.8 0 3-.9 4-2.4l3.8-5.2C14.4 7.9 15.6 7 17.4 7H21"/><polyline points="18 4 21 7 18 10"/><path d="M3 7h2.6c1.8 0 3 .9 4 2.4l.5.7"/><path d="M13.9 13.9l.5.7c1 1.5 2.2 2.4 4 2.4H21"/><polyline points="18 14 21 17 18 20"/></svg></span>
+              </div>
+
+              <!-- Solo audio (foco) arriba al centro y menú ☰ arriba a la derecha, semitransparentes -->
+              <button class="video-float-btn video-bulb-btn" id="btnAudioOnly" title="Solo audio: imagen en negro"><svg class="bulb-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg><svg class="bulb-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5"/><path d="m2 2 20 20"/><path d="M6.3 6.3a4.67 4.67 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg></button>
+              <button class="video-float-btn video-menu-btn" id="btnVideoMenu" title="Opciones de reproducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+
+              <!-- Pantalla completa: barra de arriba (título, foco, ☰ y salir) y de abajo (tiempo y controles) -->
               <div class="fs-overlay" id="fsOverlay">
-                <div class="fs-top">
-                  <span class="fs-title" id="fsTitle"></span>
-                  <button class="fs-btn fs-exit" id="fsExit" title="Salir de pantalla completa">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
-                  </button>
+                <div class="fs-top-wrap">
+                  <!-- Título y botones de la derecha pesan igual: así el foco queda justo al centro -->
+                  <div class="fs-top">
+                    <span class="fs-title" id="fsTitle"></span>
+                    <button class="fs-btn fs-bulb" id="fsAudioOnly" title="Solo audio: imagen en negro"><svg class="bulb-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg><svg class="bulb-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5"/><path d="m2 2 20 20"/><path d="M6.3 6.3a4.67 4.67 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg></button>
+                    <div class="fs-top-right">
+                      <button class="fs-btn" id="fsMenu" title="Opciones de reproducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+                      <button class="fs-btn fs-exit" id="fsExit" title="Salir de pantalla completa">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Debajo del título: repetir y aleatorio encendidos (solo aviso) -->
+                  <div class="fs-modes">
+                    <span class="video-mode-icon hidden" data-mode-icon="repeat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 20 5 17 8"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><polyline points="7 22 4 19 7 16"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></span>
+                    <span class="video-mode-icon hidden" data-mode-icon="shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2.6c1.8 0 3-.9 4-2.4l3.8-5.2C14.4 7.9 15.6 7 17.4 7H21"/><polyline points="18 4 21 7 18 10"/><path d="M3 7h2.6c1.8 0 3 .9 4 2.4l.5.7"/><path d="M13.9 13.9l.5.7c1 1.5 2.2 2.4 4 2.4H21"/><polyline points="18 14 21 17 18 20"/></svg></span>
+                  </div>
                 </div>
                 <div class="fs-bottom">
                   <div class="fs-progress" id="fsProgressBar"><div class="fs-track"><div class="fs-progress-fill" id="fsProgress"></div><div class="fs-thumb" id="fsThumb"></div></div></div>
-                  <div class="fs-row">
+                  <div class="fs-info-row">
                     <span class="fs-time" id="fsTime">00:00 / 00:00</span>
-                    <div class="fs-ctrls">
-                      <button class="fs-btn" id="fsPrev" title="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.3"/><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.6 13.2a1.5 1.5 0 0 1 0-2.4l7.85-5.43A1 1 0 0 1 19 6.2z"/></svg></button>
-                      <button class="fs-btn fs-play" id="fsPlay" title="Reproducir / Pausar"><svg class="fs-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/></svg><svg class="fs-pause-icon hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></button>
-                      <button class="fs-btn" id="fsNext" title="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.3"/><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l7.85-5.43a1.5 1.5 0 0 0 0-2.4L6.55 5.37A1 1 0 0 0 5 6.2z"/></svg></button>
-                    </div>
                     <span class="fs-hint">Un toque: controles · Doble toque: salir</span>
+                  </div>
+                  <div class="fs-ctrls">
+                    <button class="fs-btn fs-nav" id="fsPrev" title="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.3"/><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.6 13.2a1.5 1.5 0 0 1 0-2.4l7.85-5.43A1 1 0 0 1 19 6.2z"/></svg></button>
+                    <button class="fs-btn fs-play" id="fsPlay" title="Reproducir / Pausar"><svg class="fs-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/></svg><svg class="fs-pause-icon hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></button>
+                    <button class="fs-btn fs-nav" id="fsNext" title="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.3"/><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l7.85-5.43a1.5 1.5 0 0 0 0-2.4L6.55 5.37A1 1 0 0 0 5 6.2z"/></svg></button>
                   </div>
                 </div>
               </div>
@@ -313,12 +347,9 @@
             </div>
           </div>
 
-          <!-- Controles de Reproducción táctiles (Grandes para auto) -->
+          <!-- Controles para el auto: anterior · play · siguiente. Responden en toda la franja de abajo del
+               reproductor (desde debajo de los tiempos hasta el borde); aleatorio y repetir están en el menú ☰ -->
           <div class="playback-controls">
-            <button class="btn-ctrl btn-secondary" id="btnShuffle" title="Aleatorio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2.6c1.8 0 3-.9 4-2.4l3.8-5.2C14.4 7.9 15.6 7 17.4 7H21"/><polyline points="18 4 21 7 18 10"/><path d="M3 7h2.6c1.8 0 3 .9 4 2.4l.5.7"/><path d="M13.9 13.9l.5.7c1 1.5 2.2 2.4 4 2.4H21"/><polyline points="18 14 21 17 18 20"/></svg>
-            </button>
-
             <button class="btn-ctrl btn-nav" id="btnPrev" title="Anterior">
               <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.3"/><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.6 13.2a1.5 1.5 0 0 1 0-2.4l7.85-5.43A1 1 0 0 1 19 6.2z"/></svg>
             </button>
@@ -331,16 +362,54 @@
             <button class="btn-ctrl btn-nav" id="btnNext" title="Siguiente">
               <svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.3"/><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l7.85-5.43a1.5 1.5 0 0 0 0-2.4L6.55 5.37A1 1 0 0 0 5 6.2z"/></svg>
             </button>
-
-            <button class="btn-ctrl btn-secondary" id="btnRepeat" title="Repetir">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 20 5 17 8"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><polyline points="7 22 4 19 7 16"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>
-            </button>
           </div>
         </div>
 
       </section>
-
     </main>
+
+    <!-- Menú ☰ (aleatorio y repetir video): se ubica encima del reproductor o de la pantalla completa.
+         Filas altas con ON / OFF escrito; se cierra solo a los 5 s, tocando fuera o en ✕ -->
+    <div class="player-menu-layer hidden" id="playerMenuLayer">
+      <div class="player-menu-backdrop" id="playerMenuBackdrop"></div>
+      <div class="player-menu" id="playerMenu">
+        <div class="player-menu-head">
+          <span>Opciones</span>
+          <button class="player-menu-close" id="playerMenuClose" title="Cerrar">✕</button>
+        </div>
+        <button class="player-menu-row" id="menuShuffle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2.6c1.8 0 3-.9 4-2.4l3.8-5.2C14.4 7.9 15.6 7 17.4 7H21"/><polyline points="18 4 21 7 18 10"/><path d="M3 7h2.6c1.8 0 3 .9 4 2.4l.5.7"/><path d="M13.9 13.9l.5.7c1 1.5 2.2 2.4 4 2.4H21"/><polyline points="18 14 21 17 18 20"/></svg>
+          <span class="player-menu-text"><b>Aleatorio</b><small>Mezcla el orden de la lista</small></span>
+          <span class="player-menu-state">OFF</span>
+        </button>
+        <button class="player-menu-row" id="menuRepeat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 20 5 17 8"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><polyline points="7 22 4 19 7 16"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>
+          <span class="player-menu-text"><b>Repetir video</b><small>Vuelve a empezar al terminar</small></span>
+          <span class="player-menu-state">OFF</span>
+        </button>
+        <!-- Re-escanear USB (antes en la barra de arriba): es una acción, cierra el menú -->
+        <button class="player-menu-row" id="menuRescan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4v5h-5"/><path d="M20.2 9A8.5 8.5 0 1 0 20.5 15"/></svg>
+          <span class="player-menu-text"><b>Re-escanear USB</b><small>Buscar videos nuevos en los pendrives</small></span>
+        </button>
+        <!-- Versión instalada (antes en la barra de arriba) -->
+        <div class="player-menu-version" id="menuVersion"></div>
+      </div>
+    </div>
+
+    <!-- HUD Flotante de Volumen para Gestos Ciegos en Auto -->
+    <div class="blind-volume-hud" id="blindVolumeHud">
+      <div class="blind-hud-icon" id="blindHudIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+      </div>
+      <div class="blind-hud-bar-wrap">
+        <div class="blind-hud-bar-fill" id="blindHudFill" style="height: 75%;"></div>
+      </div>
+      <div class="blind-hud-percent" id="blindHudPercent">75%</div>
+    </div>
 
   </div>
 
