@@ -3258,38 +3258,9 @@ public class MainActivity extends Activity {
             currentTrackIndex = indexInPlaylist;
         } else if (track.getFolder() != null && !track.getFolder().isEmpty()) {
             // Canción de otra carpeta (p. ej. desde una búsqueda): su carpeta pasa a ser la activa
-            currentSelectedFolder = track.getFolder();
-            currentSelectedFolderUsbSource = track.getUsbSource();
-            if (currentSelectedFolderUsbSource == null || currentSelectedFolderUsbSource.isEmpty()) {
-                String p = track.getFilePath() != null ? track.getFilePath().toLowerCase() : "";
-                if (p.contains("udisk2") || p.contains("usb2")) {
-                    currentSelectedFolderUsbSource = "USB 2";
-                } else if (p.contains("udisk1") || p.contains("usb1") || p.contains("usb0")) {
-                    currentSelectedFolderUsbSource = "USB 1";
-                }
-            }
-            updateFilterChipsVisibility();
-            currentPlaylist.clear();
-            for (Track t : allTracks) {
-                if (t.getFolder() != null && t.getFolder().equalsIgnoreCase(currentSelectedFolder)) {
-                    if (isTrackFromUsb(t, currentSelectedFolderUsbSource)) {
-                        currentPlaylist.add(t);
-                    }
-                }
-            }
-            int folderIdx = -1;
-            for (int i = 0; i < currentPlaylist.size(); i++) {
-                if (currentPlaylist.get(i).getFilePath().equals(track.getFilePath())) {
-                    folderIdx = i;
-                    break;
-                }
-            }
+            int folderIdx = selectFolderOf(track);
             setPlayQueueFromFolder();
             currentTrackIndex = folderIdx >= 0 ? folderIdx : 0;
-            updateTracksTabCount();
-            if (folderTreeAdapter != null) {
-                folderTreeAdapter.setSelectedFolder(currentSelectedFolder);
-            }
         } else {
             playQueue.clear();
             playQueue.addAll(displayedTracks);
@@ -3354,6 +3325,66 @@ public class MainActivity extends Activity {
         // Automix: si la canción terminó antes de lo previsto, la siguiente ya precargada entra al instante
         if (autoMixer.startPreparedNextNow()) return;
         playNextTrack();
+    }
+
+    /**
+     * La carpeta de este video pasa a ser la activa (la que muestra la pestaña Videos).
+     * Devuelve dónde quedó el video en esa carpeta, o -1.
+     */
+    private int selectFolderOf(Track track) {
+        currentSelectedFolder = track.getFolder();
+        currentSelectedFolderUsbSource = track.getUsbSource();
+        if (currentSelectedFolderUsbSource == null || currentSelectedFolderUsbSource.isEmpty()) {
+            String p = track.getFilePath() != null ? track.getFilePath().toLowerCase() : "";
+            if (p.contains("udisk2") || p.contains("usb2")) {
+                currentSelectedFolderUsbSource = "USB 2";
+            } else if (p.contains("udisk1") || p.contains("usb1") || p.contains("usb0")) {
+                currentSelectedFolderUsbSource = "USB 1";
+            }
+        }
+        updateFilterChipsVisibility();
+        currentPlaylist.clear();
+        for (Track t : allTracks) {
+            if (t.getFolder() != null && t.getFolder().equalsIgnoreCase(currentSelectedFolder)) {
+                if (isTrackFromUsb(t, currentSelectedFolderUsbSource)) {
+                    currentPlaylist.add(t);
+                }
+            }
+        }
+        int folderIdx = -1;
+        for (int i = 0; i < currentPlaylist.size(); i++) {
+            if (currentPlaylist.get(i).getFilePath().equals(track.getFilePath())) {
+                folderIdx = i;
+                break;
+            }
+        }
+        updateTracksTabCount();
+        if (folderTreeAdapter != null) {
+            folderTreeAdapter.setSelectedFolder(currentSelectedFolder);
+        }
+        return folderIdx;
+    }
+
+    /**
+     * Sin video elegido al abrir: queda listo el primero del pendrive, con su carpeta como la activa.
+     * No se abre (un video grande tarda en el radio): ▶ lo reproduce. Antes solo se mostraba su nombre
+     * y ▶ no hacía nada.
+     */
+    private void prepareFirstTrack() {
+        if (allTracks.isEmpty() || currentTrackIndex != -1 || videoPlayer != null) return;
+        Track first = allTracks.get(0);
+        playingFromMix = false;
+        int folderIdx = selectFolderOf(first);
+        setPlayQueueFromFolder();
+        currentTrackIndex = folderIdx >= 0 ? folderIdx : 0;
+        tvTrackTitle.setText(first.getTitle());
+        tvTrackArtist.setText(first.getArtist());
+        tvTrackAlbum.setText(first.getAlbum());
+        tvFormatBadge.setText(first.getFormat());
+        tvTimeTotal.setText(first.getFormattedDuration());
+        loadAlbumArt(first);
+        updatePreviews();
+        updateVisibleTreeNodes(); // su carpeta muestra el ecualizador (quieto)
     }
 
     private boolean startPlayback(Track track) {
@@ -4900,17 +4931,7 @@ public class MainActivity extends Activity {
 
                 filterByTab();
 
-                if (!allTracks.isEmpty() && currentTrackIndex == -1) {
-                    // Cargar primera canción en vista previa
-                    Track first = allTracks.get(0);
-                    tvTrackTitle.setText(first.getTitle());
-                    tvTrackArtist.setText(first.getArtist());
-                    tvTrackAlbum.setText(first.getAlbum());
-                    tvFormatBadge.setText(first.getFormat());
-                    tvTimeTotal.setText(first.getFormattedDuration());
-                    loadAlbumArt(first);
-                    updatePreviews();
-                }
+                prepareFirstTrack();
             });
         });
     }

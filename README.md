@@ -8,7 +8,7 @@ Es la app de videos para el radio del Tucson ix35. Hace lo mismo que JH MUSIC (e
 | App nativa Android | `android/` (paquete `com.jh.carvideo`) |
 | APK | `JH-VIDEO-v<versión>.apk`, en esta carpeta |
 | Compilar | `bash build.sh` (Gradle Wrapper con JDK 11) |
-| Versión actual | **1.1.1** (`versionCode 8`), pendiente de probar en el auto |
+| Versión actual | **1.1.2** (`versionCode 9`), pendiente de probar en el auto |
 
 JH MUSIC y JH VIDEO tienen paquetes distintos (`com.jh.caraudio` y `com.jh.carvideo`), así que se instalan juntas en el radio sin pisarse.
 
@@ -170,6 +170,7 @@ La cápsula, el formato, el láser, el resplandor y Automix quedan ocultos en el
 
 | Versión | Fecha | Cambios |
 |---|---|---|
+| 1.1.2 | 2026-10-24 | Arreglo: al abrir, el reproductor mostraba el nombre del primer video pero ▶ no hacía nada (no había lista) y la pestaña decía "Videos 0". Ahora queda listo el primer video del pendrive con su carpeta como la activa (`prepareFirstTrack()`, sin abrirlo para no cargar al radio): ▶ lo reproduce. Pendiente de probar en el auto. |
 | 1.1.1 | 2026-10-24 | Diseño revisado a la pantalla real del radio (1024 × 600): número de las pestañas en etiqueta, filas de carpeta de 60 sin línea de cantidad, nombre completo al tocar, ecualizador en el ▶ de la carpeta que suena, borde fino en la abierta, la lista vuelve a la carpeta que suena, título de alto fijo (los botones ya no se mueven), cian al tocar en vez de naranja, y en la pantalla completa anterior / siguiente ya no quedan encendidos. Pendiente de probar en el auto. |
 | 1.1.0 | 2026-10-23 | Controles para el auto (franja de anterior / play / siguiente, play más grande), menú ☰ sobre el video con aleatorio, repetir y re-escanear, indicadores, **solo audio**, carpetas grandes con doble toque, Librería y pestaña Videos con ícono propio, sin barra arriba (reloj en la tira), avisos en cartel sobre el video, tira de volumen de 72, volumen de 10 en 10, gesto de volumen con indicador. Pendiente de probar en el auto. |
 | 1.0.5 | 2026-10-23 | Los videos que el radio no puede mostrar (AV1) suenan con el dibujo de "sin video"; ya no queda congelado el cuadro del video anterior. |

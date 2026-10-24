@@ -55,7 +55,7 @@
                 android:paddingEnd="7dp"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:text="v1.1.1"
+                android:text="v1.1.2"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />

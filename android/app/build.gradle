@@ -10,8 +10,8 @@ android {
         applicationId "com.jh.carvideo"
         minSdk 21
         targetSdk 28
-        versionCode 8
-        versionName "1.1.1"
+        versionCode 9
+        versionName "1.1.2"
     }
 
     buildTypes {
