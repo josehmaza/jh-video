@@ -1,6 +1,6 @@
 # JH VIDEO
 
-Es la app de videos para el radio del Tucson ix35. Hace lo mismo que JH MUSIC (explorador de pendrives, búsqueda, Mi Lista y reproductor), pero con videos. Está en `jh-video/`, separada de JH MUSIC (`jh-music/`), para que su código no se mezcle con el de la música.
+Es la app de videos para el radio del Tucson ix35. Hace lo mismo que JH MUSIC (explorador de pendrives, búsqueda, Mi Lista y reproductor), pero con videos. Tiene su propio repositorio, separado de JH MUSIC ([josehmaza/jh-music](https://github.com/josehmaza/jh-music)), para que su código no se mezcle con el de la música.
 
 | Qué | Dónde |
 |---|---|
@@ -11,6 +11,20 @@ Es la app de videos para el radio del Tucson ix35. Hace lo mismo que JH MUSIC (e
 | Versión actual | **1.1.1** (`versionCode 8`), pendiente de probar en el auto |
 
 JH MUSIC y JH VIDEO tienen paquetes distintos (`com.jh.caraudio` y `com.jh.carvideo`), así que se instalan juntas en el radio sin pisarse.
+
+## El radio destino
+
+Se hace para el radio Android genérico del **Hyundai Tucson ix35**, sin botones en el volante (todo por pantalla). La ficha completa y qué implica al desarrollar está en [JH MUSIC · 08 · El radio destino](https://github.com/josehmaza/jh-music/blob/main/Documentacion/08-radio-destino.md). Lo principal:
+
+| Qué | Valor |
+|---|---|
+| Pantalla | **1024 × 600** a **160 dpi** (1 dp = 1 px), 60 Hz |
+| Chip | Autochips **AC8227L**: 4 × Cortex-A7 a ~1,3 GHz (32 bits), GPU **Mali-400**. Gama baja |
+| Android | Dice **10.0**, pero es API **27 = Android 8.1** |
+| Memoria | eMMC de unos 35 MB/s; Ajustes dice 4 GB de RAM y 64 GB (sin confirmar) |
+| Video | No muestra **AV1** (suena con el dibujo de "sin video") |
+
+Diseñar y revisar a 1024 × 600: el emulador de 1280 × 720 engaña.
 
 ## Cómo se usa
 
