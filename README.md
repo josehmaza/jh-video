@@ -150,8 +150,9 @@ Arrastrar el dedo hacia arriba o hacia abajo sobre el reproductor (o en pantalla
 
 Cuando algo se traba, `updateLoadMonitor()` muestra el aviso en un **cartel arriba al centro del video** (`tvVideoAlert`, fondo `bg_video_alert`, debajo del foco y del ☰) y en la pantalla completa (`tvFsAlert`), con texto naranja (rojo si es grave). Queda 6 s y no recibe toques.
 
-- "⚠ Pantalla saturada: se trabó 1,8 s": la pantalla tardó más de 0,4 s en responder (en rojo desde 1,5 s). Lo mide un hilo aparte cada 200 ms.
-- "⚠ El video no avanza hace 3 s": reproduciendo, no llegó ningún cuadro nuevo en 2,5 s (en archivos solo de audio, la posición no cambió).
+- **Apagados desde la v1.1.4** (`SHOW_LOAD_ALERTS = false`, molestaban al ver videos):
+  - "⚠ Pantalla saturada: se trabó 1,8 s": la pantalla tardó más de 0,4 s en responder (en rojo desde 1,5 s). Lo mide un hilo aparte cada 200 ms, que tampoco arranca mientras esté apagado.
+  - "⚠ El video no avanza hace 3 s": reproduciendo, no llegó ningún cuadro nuevo en 2,5 s (en archivos solo de audio, la posición no cambió).
 - "⚠ No se pudo abrir: motivo (códigos)" o "⚠ El reproductor falló: motivo". Por ejemplo "⚠ No se pudo abrir: no decodifica video AV1 · radio 1/-2147483648". Si no cabe, se corta el final.
 - "⚠ El radio no saltó a 34:00 (sigue en 1:20)", "ⓘ El reproductor no sabe cuánto dura el video…" o "ⓘ El radio no da la posición…".
 - Si en ese momento se están leyendo duraciones, agrega "· leyendo USB (N)".

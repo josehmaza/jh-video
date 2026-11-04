@@ -321,7 +321,7 @@ public class MainActivity extends Activity {
         updateModeIndicators();
         setupExplorerControls();
         setupProgressUpdater();
-        startLoadMonitor();
+        if (SHOW_LOAD_ALERTS) startLoadMonitor();
 
         checkAndRequestStoragePermissions();
 
@@ -5558,6 +5558,9 @@ public class MainActivity extends Activity {
     private static final long MONITOR_LAG_SEVERE_MS = 1500; // más que esto: aviso en rojo
     private static final long MONITOR_HOLD_MS = 6000;       // el aviso queda a la vista 6 s
     private static final long VIDEO_STALL_MS = 2500;        // reproduciendo sin avanzar: video trabado
+    // Avisos de diagnóstico «Pantalla saturada» y «El video no avanza»: apagados (molestaban al ver videos).
+    // Los de error del reproductor y de tiempo siguen. Poner true para volver a investigar congelamientos
+    private static final boolean SHOW_LOAD_ALERTS = false;
     private static final long PLAYER_ERROR_HOLD_MS = 10000;
     private static final String HEADER_GREETING = "Q hubo jefe 😉";
 
@@ -5641,11 +5644,11 @@ public class MainActivity extends Activity {
         if (playerErrorText != null && now < playerErrorUntil) {
             text = playerErrorText;
             severe = true;
-        } else if (now < monitorAlertUntil) {
+        } else if (SHOW_LOAD_ALERTS && now < monitorAlertUntil) {
             text = String.format(Locale.US, "⚠ Pantalla saturada: se trabó %.1f s", monitorAlertLagMs / 1000f)
                     .replace('.', ',');
             severe = monitorAlertLagMs >= MONITOR_LAG_SEVERE_MS;
-        } else if (stallMs >= VIDEO_STALL_MS) {
+        } else if (SHOW_LOAD_ALERTS && stallMs >= VIDEO_STALL_MS) {
             text = "⚠ El video no avanza hace " + (stallMs / 1000) + " s";
             severe = true;
         } else if (timeNote != null && now < timeNoteUntil) {
