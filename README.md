@@ -8,7 +8,7 @@ Es la app de videos para el radio del Tucson ix35. Hace lo mismo que JH MUSIC (e
 | App nativa Android | `android/` (paquete `com.jh.carvideo`) |
 | APK | `JH-VIDEO-v<versión>.apk`, en esta carpeta |
 | Compilar | `bash build.sh` (Gradle Wrapper con JDK 11) |
-| Versión actual | **1.1.2** (`versionCode 9`), pendiente de probar en el auto |
+| Versión actual | **1.2.0** (`versionCode 12`), pendiente de probar en el auto |
 
 JH MUSIC y JH VIDEO tienen paquetes distintos (`com.jh.caraudio` y `com.jh.carvideo`), así que se instalan juntas en el radio sin pisarse.
 
@@ -77,7 +77,16 @@ Diseñar y revisar a 1024 × 600: el emulador de 1280 × 720 engaña.
 
 ### Volumen con un gesto
 
-Arrastrar el dedo hacia arriba o hacia abajo sobre el reproductor (o en pantalla completa) sube o baja el volumen, con un indicador grande al centro. No empieza sobre el explorador (ahí se recorre la lista), las barras de progreso y de volumen, ni el buscador.
+Arrastrar el dedo hacia arriba o hacia abajo sobre el reproductor (o en pantalla completa) sube o baja el volumen, con un indicador circular grande al centro de toda la pantalla (el mismo de JH Launcher y JH MUSIC). No empieza sobre el explorador (ahí se recorre la lista), las barras de progreso y de volumen, ni el buscador.
+
+### Otros gestos (1.2.0)
+
+Iguales a los de JH MUSIC y JH Launcher, con las mismas exclusiones:
+
+- **Deslizar a la derecha / izquierda:** siguiente / anterior video (también en pantalla completa), con aviso SIGUIENTE / ANTERIOR en el círculo.
+- **Dibujar medio círculo con el dedo:** abre o cierra la biblioteca (no en pantalla completa). El gesto de jalar en la zona del botón del explorador sigue como estaba. Si el círculo empezó vertical y movió el volumen, el volumen vuelve al que tenía.
+
+El reconocimiento está en `BlindGestureTracker.java` (copia idéntica a la de JH MUSIC).
 
 ### Pendrives
 
@@ -171,6 +180,7 @@ La cápsula, el formato, el láser, el resplandor y Automix quedan ocultos en el
 
 | Versión | Fecha | Cambios |
 |---|---|---|
+| 1.2.0 | 2026-11-11 | Gestos estándar con un dedo como en JH MUSIC y JH Launcher: deslizar a los lados = siguiente / anterior (con aviso en el círculo) y medio círculo = abrir o cerrar la biblioteca. Indicador de volumen circular en el centro de la pantalla. Pendiente de probar en el auto. |
 | 1.1.2 | 2026-10-24 | Arreglo: al abrir, el reproductor mostraba el nombre del primer video pero ▶ no hacía nada (no había lista) y la pestaña decía "Videos 0". Ahora queda listo el primer video del pendrive con su carpeta como la activa (`prepareFirstTrack()`, sin abrirlo para no cargar al radio): ▶ lo reproduce. Pendiente de probar en el auto. |
 | 1.1.1 | 2026-10-24 | Diseño revisado a la pantalla real del radio (1024 × 600): número de las pestañas en etiqueta, filas de carpeta de 60 sin línea de cantidad, nombre completo al tocar, ecualizador en el ▶ de la carpeta que suena, borde fino en la abierta, la lista vuelve a la carpeta que suena, título de alto fijo (los botones ya no se mueven), cian al tocar en vez de naranja, y en la pantalla completa anterior / siguiente ya no quedan encendidos. Pendiente de probar en el auto. |
 | 1.1.0 | 2026-10-23 | Controles para el auto (franja de anterior / play / siguiente, play más grande), menú ☰ sobre el video con aleatorio, repetir y re-escanear, indicadores, **solo audio**, carpetas grandes con doble toque, Librería y pestaña Videos con ícono propio, sin barra arriba (reloj en la tira), avisos en cartel sobre el video, tira de volumen de 72, volumen de 10 en 10, gesto de volumen con indicador. Pendiente de probar en el auto. |

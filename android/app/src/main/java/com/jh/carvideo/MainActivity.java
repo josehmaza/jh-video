@@ -888,6 +888,7 @@ public class MainActivity extends Activity {
                 // Gesto ciego de volumen vertical en pantalla
                 blindVolDragging = false;
                 blindVolPassedDeadzone = false;
+                gestureTracker.cancel();
                 // No en el explorador: ahí un arrastre vertical es scroll de la lista (o reordenar la lista);
                 // si no, la lista se trababa y el volumen cambiaba al buscar una canción
                 if (!globalTouchOnSeekbar && !globalTouchInToggleZone && !(getCurrentFocus() instanceof EditText)
@@ -906,12 +907,14 @@ public class MainActivity extends Activity {
                         blindVolStartY = ev.getRawY();
                         blindVolStartVal = currentVolPercent;
                         blindVolDragging = true;
+                        gestureTracker.start(ev.getRawX(), ev.getRawY(), SystemClock.uptimeMillis());
                     }
                 }
                 break;
             }
 
             case MotionEvent.ACTION_MOVE: {
+                gestureTracker.add(ev.getRawX(), ev.getRawY(), SystemClock.uptimeMillis());
                 // Gesto ciego vertical de volumen (en toda la pantalla con bloqueo direccional)
                 if (blindVolDragging && !globalTouchOnSeekbar) {
                     float dx = ev.getRawX() - blindVolStartX;
@@ -966,6 +969,43 @@ public class MainActivity extends Activity {
             }
 
             case MotionEvent.ACTION_UP: {
+                // Gestos de un dedo (iguales en JH LAUNCHER y JH MUSIC): círculo = abrir/cerrar la biblioteca,
+                // deslizar a los lados = anterior / siguiente
+                if (gestureTracker.isActive()) {
+                    gestureTracker.add(ev.getRawX(), ev.getRawY(), SystemClock.uptimeMillis());
+                    boolean wasVolume = blindVolPassedDeadzone;
+                    // En pantalla completa no hay biblioteca que abrir: el círculo no hace nada ahí
+                    if (!isVideoFs && gestureTracker.finishIsCircle()) {
+                        if (wasVolume) {
+                            // El círculo pudo empezar vertical y mover el volumen: se devuelve al que tenía
+                            setVolumePercent(blindVolStartVal, false);
+                            handler.removeCallbacks(hideBlindVolHudRunnable);
+                            hideBlindVolHudRunnable.run();
+                        } else {
+                            cancelChildTouch(ev);
+                        }
+                        blindVolDragging = false;
+                        blindVolPassedDeadzone = false;
+                        toggleExplorerVisibility();
+                        return true;
+                    }
+                    if (!wasVolume && !globalGestureHandled) {
+                        int swipe = gestureTracker.finishSwipe();
+                        if (swipe != BlindGestureTracker.NONE) {
+                            cancelChildTouch(ev);
+                            blindVolDragging = false;
+                            if (swipe == BlindGestureTracker.SWIPE_NEXT) {
+                                showBlindActionHud(R.drawable.ic_ctrl_next, "SIGUIENTE");
+                                playNextTrack();
+                            } else {
+                                showBlindActionHud(R.drawable.ic_ctrl_prev, "ANTERIOR");
+                                playPreviousTrack();
+                            }
+                            return true;
+                        }
+                    }
+                    gestureTracker.cancel();
+                }
                 if (blindVolPassedDeadzone) {
                     blindVolDragging = false;
                     blindVolPassedDeadzone = false;
@@ -999,8 +1039,24 @@ public class MainActivity extends Activity {
                 }
                 break;
             }
+
+            case MotionEvent.ACTION_CANCEL: {
+                gestureTracker.cancel();
+                break;
+            }
         }
         return super.dispatchTouchEvent(ev);
+    }
+
+    private final BlindGestureTracker gestureTracker =
+            new BlindGestureTracker(android.content.res.Resources.getSystem().getDisplayMetrics().density);
+
+    /** Lo que estaba debajo del dedo recibe un CANCEL: el gesto ya lo atendimos nosotros (no debe quedar presionado). */
+    private void cancelChildTouch(MotionEvent ev) {
+        MotionEvent cancel = MotionEvent.obtain(ev);
+        cancel.setAction(MotionEvent.ACTION_CANCEL);
+        super.dispatchTouchEvent(cancel);
+        cancel.recycle();
     }
 
     @Override
@@ -1133,7 +1189,7 @@ public class MainActivity extends Activity {
         if (content == null) return;
         layoutBlindVolHud = getLayoutInflater().inflate(R.layout.layout_blind_volume_hud, content, false);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                dp(140), ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
+                dp(220), dp(220), Gravity.CENTER);
         content.addView(layoutBlindVolHud, lp);
         ivBlindHudIcon = layoutBlindVolHud.findViewById(R.id.ivBlindHudIcon);
         viewBlindHudFill = layoutBlindVolHud.findViewById(R.id.viewBlindHudFill);
@@ -1151,20 +1207,60 @@ public class MainActivity extends Activity {
         return layoutExplorerPanel.getGlobalVisibleRect(rect) && rect.contains((int) rawX, (int) rawY);
     }
 
+    /**
+     * Aviso de un gesto (SIGUIENTE / ANTERIOR) en el mismo círculo del volumen, igual que en JH LAUNCHER:
+     * así se ve que el gesto se reconoció aunque el video no cambie (por ejemplo, con uno solo en la lista).
+     */
+    private void showBlindActionHud(int iconRes, String label) {
+        if (layoutBlindVolHud == null) return;
+        handler.removeCallbacks(hideBlindVolHudRunnable);
+        if (layoutBlindVolHud.getVisibility() != View.VISIBLE) {
+            layoutBlindVolHud.setAlpha(0f);
+            layoutBlindVolHud.setScaleX(0.82f);
+            layoutBlindVolHud.setScaleY(0.82f);
+            layoutBlindVolHud.setVisibility(View.VISIBLE);
+            layoutBlindVolHud.bringToFront();
+            layoutBlindVolHud.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180)
+                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.5f));
+        }
+        if (tvBlindHudPercent != null) {
+            tvBlindHudPercent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+            tvBlindHudPercent.setText(label);
+        }
+        if (viewBlindHudFill != null) ((View) viewBlindHudFill.getParent()).setVisibility(View.GONE);
+        if (ivBlindHudIcon != null) {
+            ivBlindHudIcon.setImageResource(iconRes);
+            ivBlindHudIcon.setColorFilter(Color.parseColor("#38bdf8"));
+        }
+        handler.postDelayed(hideBlindVolHudRunnable, 700);
+    }
+
     private void showBlindVolumeHud(int percent) {
         if (layoutBlindVolHud == null) return;
         handler.removeCallbacks(hideBlindVolHudRunnable);
-        layoutBlindVolHud.setVisibility(View.VISIBLE);
-        layoutBlindVolHud.bringToFront();
+        if (layoutBlindVolHud.getVisibility() != View.VISIBLE) {
+            layoutBlindVolHud.setAlpha(0f);
+            layoutBlindVolHud.setScaleX(0.82f);
+            layoutBlindVolHud.setScaleY(0.82f);
+            layoutBlindVolHud.setVisibility(View.VISIBLE);
+            layoutBlindVolHud.bringToFront();
+            // La animación de entrada solo corre al aparecer: reiniciarla en cada movimiento del dedo la dejaba a medias
+            layoutBlindVolHud.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180)
+                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.5f));
+        }
 
-        if (tvBlindHudPercent != null) tvBlindHudPercent.setText(percent + "%");
+        if (tvBlindHudPercent != null) {
+            tvBlindHudPercent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 56);
+            tvBlindHudPercent.setText(percent + "%");
+        }
+        if (viewBlindHudFill != null) ((View) viewBlindHudFill.getParent()).setVisibility(View.VISIBLE);
 
         if (viewBlindHudFill != null) {
-            int trackH = dp(130);
-            int fillH = Math.round((percent / 100f) * trackH);
+            int trackW = dp(130);
+            int fillW = Math.round((percent / 100f) * trackW);
             ViewGroup.LayoutParams lp = viewBlindHudFill.getLayoutParams();
             if (lp != null) {
-                lp.height = fillH;
+                lp.width = fillW;
                 viewBlindHudFill.setLayoutParams(lp);
             }
         }
