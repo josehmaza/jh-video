@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pantalla completa del video (como las apps de video para auto): tapa todo menos la tira de volumen
-     de la izquierda (72dp), porque el auto no tiene botones físicos.
+<!-- Pantalla completa del video: aprovecha los 1024x600 px completos de la pantalla del auto.
      Un toque muestra u oculta los controles; doble toque sale -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layoutVideoFs"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginStart="72dp"
-    android:layout_marginLeft="72dp"
     android:background="#000000"
     android:visibility="gone">
 
